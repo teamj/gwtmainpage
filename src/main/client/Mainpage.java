@@ -25,10 +25,7 @@ import com.google.gwt.user.client.ui.HTML;
 
 public class Mainpage implements EntryPoint, ClickHandler
 {
-	String surveyTitle = "";
-	String[] surveyArray = new String[30];
-	int surveyArrayIndex1 = 0;
-	int surveyArrayIndex2 = 0;
+	
 	//VerticalPanel mainPanel = new VerticalPanel();
 	TabPanel tabPanel = new TabPanel();  
 	
@@ -76,12 +73,26 @@ public class Mainpage implements EntryPoint, ClickHandler
     Label surveyTitleLabel = new Label("Title");
     TextBox surveyTitleBox = new TextBox();
     HorizontalPanel surveyTitleRow = new HorizontalPanel();
+    Button newSurveyNextButton1 = new Button("Next");
+    Button newSurveyNextButton2 = new Button("Next");
+    Button submitSurveyButton = new Button("Finish Survey");
+    Button addQuestionButton = new Button("Add Another Question");
+    Button addOptionButton = new Button("Submit Option");
+    VerticalPanel surveyQuestionPanel = new VerticalPanel();
+    Label surveyQuestionLabel = new Label("Enter Your Question");
+    TextArea surveyQuestionArea = new TextArea();
+    VerticalPanel surveyOptionsPanel = new VerticalPanel();
+    Label surveyOptionsLabel = new Label("Create The Option");
+    TextBox surveyOptionsBox = new TextBox();
     HorizontalPanel surveyButtonRow = new HorizontalPanel();
-    Button submitSurveyButton = new Button("Submit Survey");
-    Button addQuestionButton = new Button("Add A Question");
     //VerticalPanel pendingSurvey = new VerticalPanel();
     //HorizontalPanel pendingSurveyChoices = new HorizontalPanel();
     HTML pendingSurvey = new HTML();
+    String surveyTitle = "";
+	String[][] surveyArray = new String[10][10];
+	int surveyArrayIndex1 = 0;
+	int surveyArrayIndex2 = 0;
+	String pendingSurveyHTML = "";
         
 	public void onModuleLoad()
 	{
@@ -91,7 +102,10 @@ public class Mainpage implements EntryPoint, ClickHandler
 		viewUsersButton.addClickHandler(this);
 		createSurveyButton.addClickHandler(this);
 		submitSurveyButton.addClickHandler(this);
-		
+		newSurveyNextButton1.addClickHandler(this);
+		newSurveyNextButton2.addClickHandler(this);
+		addQuestionButton.addClickHandler(this);
+		addOptionButton.addClickHandler(this);
 		//textarea.setCharacterWidth(50);
 		//textarea.setVisibleLines(25);
 				
@@ -127,11 +141,18 @@ public class Mainpage implements EntryPoint, ClickHandler
 		surveyPanel.add(surveyButtonPanel);
 		surveyButtonPanel.add(createSurveyButton);
 		newSurveyPanel.add(surveyTitleRow);
-		newSurveyPanel.add(surveyButtonRow);
-		surveyButtonRow.add(submitSurveyButton);
-		surveyButtonRow.add(addQuestionButton);
+		newSurveyPanel.add(newSurveyNextButton1);
 		surveyTitleRow.add(surveyTitleLabel);
 		surveyTitleRow.add(surveyTitleBox);
+		surveyQuestionPanel.add(surveyQuestionLabel);
+		surveyQuestionPanel.add(surveyQuestionArea);
+		surveyQuestionPanel.add(newSurveyNextButton2);
+		surveyOptionsPanel.add(surveyOptionsLabel);
+		surveyOptionsPanel.add(surveyOptionsBox);
+		surveyOptionsPanel.add(surveyButtonRow);
+		surveyButtonRow.add(addQuestionButton);
+		surveyButtonRow.add(addOptionButton);
+		surveyButtonRow.add(submitSurveyButton);
 		tabPanel.add(surveyPanel, "Surveys");
 		
 		RootPanel.get().add(tabPanel);
@@ -139,6 +160,20 @@ public class Mainpage implements EntryPoint, ClickHandler
 		//String url = "http://localhost:3000/pages/welcome";
 		//getRequest(url);
 		
+	}
+	
+	public String makePendingSurveyHTML()
+	{
+		pendingSurveyHTML = "<table><tr><th>" + surveyTitle + "</th></tr>";
+		for (int i=0;i<surveyArray.length;i++) {
+			pendingSurveyHTML += "<tr>" + surveyArray[i][0] + "</tr><tr>";
+			
+			for (int j=1;j<surveyArray[i].length;j++) {
+				pendingSurveyHTML += "<td>" + surveyArray[i][j] + "<td>";				
+			}
+			pendingSurveyHTML += "</tr>";	
+		}
+		return pendingSurveyHTML;
 	}
 	
 	public void onClick(ClickEvent event)
@@ -191,13 +226,14 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveyPanel.add(pendingSurvey);
 		}
 		
-		else if (source == submitSurveyButton) {
+		else if (source == newSurveyNextButton1) {
 			surveyTitle = surveyTitleBox.getText();
-			String encData = URL.encode("survey_title") + "=" +
-				URL.encode(surveyTitle) + "&";
-			surveyTitleBox.setText("");
-			pendingSurvey.setHTML("<table border='1'><tr>"+surveyTitle+"</tr><tr>  </tr>  </table>");
-			//postRequest("http://localhost:3000/sugg_surveys/create", surveyTitle);	
+			surveyPanel.clear();
+			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyQuestionPanel);
+			pendingSurvey.setHTML(makePendingSurveyHTML());
+			surveyPanel.add(pendingSurvey);
+			
 		}
 		
 		/*
