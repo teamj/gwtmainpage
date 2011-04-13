@@ -25,7 +25,15 @@ import com.google.gwt.user.client.ui.HTML;
 
 public class Mainpage implements EntryPoint, ClickHandler
 {
-	
+	HorizontalPanel loginPanel = new HorizontalPanel();
+	VerticalPanel loginInputPanel = new VerticalPanel();
+	HorizontalPanel loginRow1 = new HorizontalPanel();
+	HorizontalPanel loginRow2 = new HorizontalPanel();
+	Label loginUsernameLabel = new Label("Username");
+	Label loginPasswordLabel = new Label("Password");
+	PasswordTextBox loginPasswordBox = new PasswordTextBox();
+	TextBox loginUsernameBox = new TextBox();
+	Button loginSubmitButton = new Button("Submit");
 	//VerticalPanel mainPanel = new VerticalPanel();
 	TabPanel tabPanel = new TabPanel();  
 	
@@ -96,6 +104,15 @@ public class Mainpage implements EntryPoint, ClickHandler
         
 	public void onModuleLoad()
 	{
+        loginRow1.add(loginUsernameLabel);
+        loginRow1.add(loginUsernameBox);
+        loginRow2.add(loginPasswordLabel);
+        loginRow2.add(loginPasswordBox);
+        loginInputPanel.add(loginRow1);
+        loginInputPanel.add(loginRow2);
+        loginInputPanel.add(loginSubmitButton);
+        loginPanel.add(loginInputPanel);
+        
         //okButton.addClickHandler(this);
 		newUserButton.addClickHandler(this);
 		newUserSubmitButton.addClickHandler(this);
@@ -106,6 +123,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		newSurveyNextButton2.addClickHandler(this);
 		addQuestionButton.addClickHandler(this);
 		addOptionButton.addClickHandler(this);
+		loginSubmitButton.addClickHandler(this);
 		//textarea.setCharacterWidth(50);
 		//textarea.setVisibleLines(25);
 				
@@ -155,7 +173,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 		surveyButtonRow.add(submitSurveyButton);
 		tabPanel.add(surveyPanel, "Surveys");
 		
-		RootPanel.get().add(tabPanel);
+		RootPanel.get().add(loginInputPanel);
+		//RootPanel.get().add(tabPanel);
 		getRequest(displayUsersURL);
 		//String url = "http://localhost:3000/pages/welcome";
 		//getRequest(url);
@@ -180,7 +199,18 @@ public class Mainpage implements EntryPoint, ClickHandler
 	{
 		
 		Object source = event.getSource();
-		if (source == newUserButton) {
+		if (source == loginSubmitButton) {
+			String usernameVar = loginUsernameBox.getText();
+			String passwordVar = loginPasswordBox.getText();
+			String encData = URL.encode("username") + "+" +
+			  URL.encode(usernameVar) + "&";
+			encData += URL.encode("password") + "=" +
+			  URL.encode(passwordVar) + "&";
+			String url = "http://localhost:3000/pages/login";
+			postRequest(url, encData);
+		}
+		
+		else if (source == newUserButton) {
 			adminPanel.clear();
 			adminPanel.add(adminButtonPanel);
 			adminPanel.add(newUserPanel);
@@ -295,6 +325,16 @@ public class Mainpage implements EntryPoint, ClickHandler
 					final Response response)
 				{
 					
+					String resp = response.getText().trim();
+					int id = Integer.parseInt(resp);
+					if (id < 1) {
+						loginUsernameBox.setText("");
+						loginPasswordBox.setText("");
+					}
+					else {
+						RootPanel.get().clear();
+						RootPanel.get().add(tabPanel);
+					}
 					getRequest(displayUsersURL);
 					//displayUsers.setUrl(displayUsersURL);
 					//String url1 = "http://localhost:3000/pages/welcome";
