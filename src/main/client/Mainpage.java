@@ -34,6 +34,10 @@ public class Mainpage implements EntryPoint, ClickHandler
 	PasswordTextBox loginPasswordBox = new PasswordTextBox();
 	TextBox loginUsernameBox = new TextBox();
 	Button loginSubmitButton = new Button("Submit");
+	
+	TextArea trialArea = new TextArea();
+	
+	
 	//VerticalPanel mainPanel = new VerticalPanel();
 	TabPanel tabPanel = new TabPanel();  
 	
@@ -112,6 +116,10 @@ public class Mainpage implements EntryPoint, ClickHandler
         loginInputPanel.add(loginRow2);
         loginInputPanel.add(loginSubmitButton);
         loginPanel.add(loginInputPanel);
+        trialArea.setVisibleLines(25);
+        trialArea.setCharacterWidth(50);
+        //loginPanel.add(trialArea);   //TTEST TEST TEST
+        //getRequest("http://localhost:3000/users/sample");
         
         //okButton.addClickHandler(this);
 		newUserButton.addClickHandler(this);
@@ -149,8 +157,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		row6.add(depLabel);
 		row6.add(departmentBox);
 		newUserPanel.add(newUserSubmitButton);
-								
-		tabPanel.add(adminPanel, "Admin");
+		//tabPanel.add(adminPanel, "Admin");
 		
 		suggButtonPanel.add(makeSuggButton);
 		suggPanel.add(suggButtonPanel);
@@ -173,9 +180,9 @@ public class Mainpage implements EntryPoint, ClickHandler
 		surveyButtonRow.add(submitSurveyButton);
 		tabPanel.add(surveyPanel, "Surveys");
 		
-		RootPanel.get().add(loginInputPanel);
+		RootPanel.get().add(loginPanel);
+		
 		//RootPanel.get().add(tabPanel);
-		getRequest(displayUsersURL);
 		//String url = "http://localhost:3000/pages/welcome";
 		//getRequest(url);
 		
@@ -183,12 +190,30 @@ public class Mainpage implements EntryPoint, ClickHandler
 	
 	public String makePendingSurveyHTML()
 	{
-		pendingSurveyHTML = "<table><tr><th>" + surveyTitle + "</th></tr>";
+		pendingSurveyHTML = "<table border='1'><tr><th>PENDING SURVEY</th></tr><tr><th>Title:</th></tr>";
+		if (surveyTitle == null){
+				
+		}
+		else {
+			pendingSurveyHTML += "<tr><td>" + surveyTitle + "</td></tr>";	
+		}
+		
+		pendingSurveyHTML +=  "<tr><th>Suggestion:</th></tr><tr><th>Questions and Options:</th></tr>";
+		
 		for (int i=0;i<surveyArray.length;i++) {
-			pendingSurveyHTML += "<tr>" + surveyArray[i][0] + "</tr><tr>";
-			
+			if (surveyArray[i][0] == null) {
+				//DOES NOTHING
+			}
+			else {
+				pendingSurveyHTML += "<tr><td>" + surveyArray[i][0] + "</td></tr><tr>";
+			}
 			for (int j=1;j<surveyArray[i].length;j++) {
-				pendingSurveyHTML += "<td>" + surveyArray[i][j] + "<td>";				
+				if (surveyArray[i][j] == null) {
+					//DOES NOTHING
+				}
+				else {
+					pendingSurveyHTML += "<td>" + surveyArray[i][j] + "</td>";
+			    }				
 			}
 			pendingSurveyHTML += "</tr>";	
 		}
@@ -200,12 +225,12 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		Object source = event.getSource();
 		if (source == loginSubmitButton) {
-			String usernameVar = loginUsernameBox.getText();
-			String passwordVar = loginPasswordBox.getText();
-			String encData = URL.encode("username") + "+" +
-			  URL.encode(usernameVar) + "&";
+			String username = loginUsernameBox.getText();
+			String password = loginPasswordBox.getText();
+			String encData = URL.encode("username") + "=" +
+			  URL.encode(username) + "&";
 			encData += URL.encode("password") + "=" +
-			  URL.encode(passwordVar) + "&";
+			  URL.encode(password) + "&";
 			String url = "http://localhost:3000/pages/login";
 			postRequest(url, encData);
 		}
@@ -215,6 +240,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			adminPanel.add(adminButtonPanel);
 			adminPanel.add(newUserPanel);
 			adminPanel.add(displayUsers);
+			getRequest(displayUsersURL);
 			
 		}
 		
@@ -222,8 +248,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		    adminPanel.clear();
 		    adminPanel.add(adminButtonPanel);
 			adminPanel.add(displayUsers);
-			//String url = "http://localhost:3000/users/index";
-			//getRequest(url);
+			getRequest(displayUsersURL);
 		}
 		
 		else if (source == newUserSubmitButton) {
@@ -258,6 +283,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		else if (source == newSurveyNextButton1) {
 			surveyTitle = surveyTitleBox.getText();
+			surveyTitleBox.setText("");
 			surveyPanel.clear();
 			surveyPanel.add(surveyButtonPanel);
 			surveyPanel.add(surveyQuestionPanel);
@@ -266,19 +292,49 @@ public class Mainpage implements EntryPoint, ClickHandler
 			
 		}
 		
-		/*
-		if (source == okButton) {
-			String encData = URL.encode("user_name") + "=" +
-				URL.encode(usernameBox.getText()) + "&";
-			encData += URL.encode("password") + "=" +
-				URL.encode(passwordBox.getText()) + "&";
-            String url = "http://localhost:3000/pages/login";
-			postRequest(url,encData);
+		else if (source == newSurveyNextButton2) {
+			surveyArray[surveyArrayIndex1][surveyArrayIndex2] = surveyQuestionArea.getText();
+			surveyQuestionArea.setText("");
+			surveyArrayIndex2++;
+			surveyPanel.clear();
+			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyOptionsPanel);
+			pendingSurvey.setHTML(makePendingSurveyHTML());
+			surveyPanel.add(pendingSurvey);
 		}
-		*/
+		
+		else if (source == addOptionButton) {
+			surveyArray[surveyArrayIndex1][surveyArrayIndex2] = surveyOptionsBox.getText();
+			surveyArrayIndex2++;
+			surveyOptionsBox.setText("");
+			pendingSurvey.setHTML(makePendingSurveyHTML());
+		}
+		
+		else if (source == addQuestionButton) {
+			surveyPanel.clear();
+			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyQuestionPanel);
+			surveyPanel.add(pendingSurvey);
+			surveyArrayIndex1++;
+			surveyArrayIndex2 = 0;
+		}
+		
+		else if (source == submitSurveyButton) {
+			//PASS ARRAY TO RAILS FIRST
+			surveyTitle = null;
+			for (int i=0;i<surveyArray.length;i++) {
+				for (int j=0;j<surveyArray[i].length;j++) {
+					surveyArray[i][j] = null;
+				}
+			}
+			Label surveyCreated = new Label("Survey Has Been Created");
+			surveyPanel.clear();
+			surveyPanel.add(surveyButtonPanel);
+			pendingSurvey.setHTML(makePendingSurveyHTML());
+			surveyPanel.add(surveyCreated);
+		}
 	}
-
-
+    
 	private void getRequest(String url)
 	{
 		final RequestBuilder rb =
@@ -294,9 +350,13 @@ public class Mainpage implements EntryPoint, ClickHandler
 				public void onResponseReceived(final Request request,
 					final Response response)
 				{
+					
+					//trialArea.setText(resp);
+					//loginPanel.add(trialLabel);
 					displayUsers.setHTML(response.getText());
 										
 					//textarea.setText(response.getText());
+					
 				}
 			});
 			
@@ -327,18 +387,21 @@ public class Mainpage implements EntryPoint, ClickHandler
 					
 					String resp = response.getText().trim();
 					int id = Integer.parseInt(resp);
-					if (id < 1) {
-						loginUsernameBox.setText("");
-						loginPasswordBox.setText("");
-					}
-					else {
+					if (id > 0) {
 						RootPanel.get().clear();
 						RootPanel.get().add(tabPanel);
 					}
-					getRequest(displayUsersURL);
+					else {
+						loginUsernameBox.setText("");
+						loginPasswordBox.setText("");
+					}
+					
 					//displayUsers.setUrl(displayUsersURL);
 					//String url1 = "http://localhost:3000/pages/welcome";
 					//getRequest(url1);
+					
+					
+					getRequest(displayUsersURL);
 				
 				}
 			});
