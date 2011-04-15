@@ -9,5 +9,4 @@
 <!-- Specify the app entry point class. -->
 <entry-point class='main.client.Mainpage'/>
 
-
 </module>

@@ -21,11 +21,34 @@ import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.Frame;
 import com.google.gwt.user.client.ui.HTML;
-
+import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.core.client.JsArray;
+import java.util.ArrayList;
 
 
 public class Mainpage implements EntryPoint, ClickHandler
 {
+	
+	private static class UserInfo
+	{
+		private final String department;
+		private final String division;
+		private final String first_name;
+		private final String last_name;	
+		
+		public UserInfo(String dep, String div, String fn, String ln)
+		{
+			department = dep;
+			division = div;
+			first_name = fn;
+			last_name = ln;
+		} 
+	}
+	
+	ArrayList<UserInfo> users = new ArrayList<UserInfo>();
+	JsArray<User> jsonData;
+	
 	HorizontalPanel loginPanel = new HorizontalPanel();
 	VerticalPanel loginInputPanel = new VerticalPanel();
 	HorizontalPanel loginRow1 = new HorizontalPanel();
@@ -106,6 +129,10 @@ public class Mainpage implements EntryPoint, ClickHandler
 	int surveyArrayIndex1 = 0;
 	int surveyArrayIndex2 = 0;
 	String pendingSurveyHTML = "";
+	CellTable<UserInfo> table = new CellTable<UserInfo>();
+	
+	
+	
         
 	public void onModuleLoad()
 	{
@@ -119,7 +146,7 @@ public class Mainpage implements EntryPoint, ClickHandler
         loginPanel.add(loginInputPanel);
         trialArea.setVisibleLines(25);
         trialArea.setCharacterWidth(50);
-        //loginPanel.add(trialArea);   //TTEST TEST TEST
+        loginPanel.add(trialArea);   //TTEST TEST TEST
         //getRequest("http://localhost:3000/users/sample");
         
         //okButton.addClickHandler(this);
@@ -158,7 +185,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		row6.add(depLabel);
 		row6.add(departmentBox);
 		newUserPanel.add(newUserSubmitButton);
-		//tabPanel.add(adminPanel, "Admin");
+		tabPanel.add(adminPanel, "Admin");
 		
 		suggButtonPanel.add(makeSuggButton);
 		suggPanel.add(suggButtonPanel);
@@ -186,6 +213,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		//RootPanel.get().add(tabPanel);
 		//String url = "http://localhost:3000/pages/welcome";
 		//getRequest(url);
+		//getRequest("http://localhost:3000/users/index.json");
 		
 	}
 	
@@ -248,8 +276,12 @@ public class Mainpage implements EntryPoint, ClickHandler
 		else if (source == viewUsersButton) {
 		    adminPanel.clear();
 		    adminPanel.add(adminButtonPanel);
-			adminPanel.add(displayUsers);
-			getRequest(displayUsersURL);
+			//adminPanel.add(displayUsers);
+			getRequest("http://localhost:3000/users/index.json");
+			table = new CellTable<UserInfo>();
+			adminPanel.add(table);
+			
+			
 		}
 		
 		else if (source == newUserSubmitButton) {
@@ -355,8 +387,55 @@ public class Mainpage implements EntryPoint, ClickHandler
 					//trialArea.setText(resp);
 					//loginPanel.add(trialLabel);
 					displayUsers.setHTML(response.getText());
-										
+					trialArea.setText(response.getText());					
 					//textarea.setText(response.getText());
+					jsonData = getArrayUserData(response.getText());
+					User user = null;
+					for (int i = 0; i < jsonData.length(); i++) {
+						user = jsonData.get(i);
+						users.add(new UserInfo(user.getDepartment(), user.getDivision(), user.getFirstName(), user.getLastName()));
+					}
+					
+					TextColumn<UserInfo> depColumn = new TextColumn<UserInfo>()
+					{
+						@Override
+						public String getValue(UserInfo user)
+						{
+							return user.department;
+						}
+					};
+					TextColumn<UserInfo> divColumn = new TextColumn<UserInfo>()
+					{
+						@Override
+						public String getValue(UserInfo user)
+						{
+							return user.division;
+						}
+					};
+					TextColumn<UserInfo> fnColumn = new TextColumn<UserInfo>()
+					{
+						@Override
+						public String getValue(UserInfo user)
+						{
+							return user.first_name;
+						}
+					};
+					TextColumn<UserInfo> lnColumn = new TextColumn<UserInfo>()
+					{
+						@Override
+						public String getValue(UserInfo user)
+						{
+							return user.last_name;
+						}
+					};
+					table.addColumn(depColumn, "Department");
+					table.addColumn(divColumn, "Division");
+					table.addColumn(fnColumn, "First Name");
+					table.addColumn(lnColumn, "Last Name");
+					table.setRowCount(users.size(),true);
+					table.setRowData(0,users);
+					
+					
 					
 				}
 			});
@@ -411,6 +490,10 @@ public class Mainpage implements EntryPoint, ClickHandler
 			Window.alert(e.getMessage());
 		}
 	} // end postRequst
+	private final native JsArray<User>
+	getArrayUserData(String json)/*-{
+		return eval(json);
+	}-*/;
 
 }
 
