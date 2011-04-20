@@ -316,8 +316,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 		displaySurveyPanel.add(displaySurveyOptionPanel);
 		
 		
-		RootPanel.get().add(loginPanel);
-		//RootPanel.get().add(tabPanel);
+		//RootPanel.get().add(loginPanel);
+		RootPanel.get().add(tabPanel);
 		
 		//String url = "http://localhost:3000/pages/welcome";
 		//getRequest(url);
@@ -524,13 +524,22 @@ public class Mainpage implements EntryPoint, ClickHandler
 		else if (source == submitSurveyButton) {
 			String xmlSurvey = "\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><arrays type=\"array\">"; 
 				for (int i=0;i<surveyArray.length;i++) {
-					xmlSurvey += "<array type=\"array\"> <array>" + surveyArray[i][0] + "</array>"; 
-					for (int j=1;j<surveyArray[i].length-1;j++) {
-						xmlSurvey += "<array>"+surveyArray[i][j]+"</array>";	
+					
+					if (surveyArray[i][0] != null){
+						xmlSurvey += "<array type=\"array\">";
+						xmlSurvey +=  "<array>" + surveyArray[i][0] + "</array>"; 
 					}
-					xmlSurvey += "</array>";
+					for (int j=1;j<surveyArray[i].length-1;j++) {
+						if (surveyArray[i][j] != null) {
+							xmlSurvey += "<array>"+surveyArray[i][j]+"</array>";
+						}	
+					}
+					if (surveyArray[i][0] != null) {
+						xmlSurvey += "</array>";
+					}
+					
 				}
-				xmlSurvey += "</array>";
+				xmlSurvey += "</arrays>";
 			String encData = URL.encode("survey_title") + "=" +
 				URL.encode(surveyTitle) + "&";
 			encData += URL.encode("sugg_id") + "=" +
@@ -551,7 +560,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveyPanel.add(surveyButtonPanel);
 			pendingSurvey.setHTML(makePendingSurveyHTML());
 			surveyPanel.add(surveyCreated);
-			String url = "localhost:3000/sugg_surveys/createSurvey";
+			Window.alert(xmlSurvey);
+			String url = "http://localhost:3000/sugg_surveys/createSurvey";
 			postRequest(url, encData);
 		}
 		
@@ -656,16 +666,24 @@ public class Mainpage implements EntryPoint, ClickHandler
 		}
 		
 		else if (source == displaySurveySubmitButton) {
+			DisplaySurvey prevSurv = null;
+			prevSurv = displaySurveyArray.get(prevSurvIndex);
+			surveyResultArray[surveyResultArrayIndex][0] = prevSurv.getQuestionID();
+			surveyResultArray[surveyResultArrayIndex][1] = chosenOptionLabel.getText(); 
 			surveyPanel.clear();
 			surveyPanel.add(surveyButtonPanel);
 			Window.alert("Survey Submitted");
 			String xmlSurvey = "\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><arrays type=\"array\">"; 
 				for (int i=0;i<surveyResultArray.length;i++) {
-					xmlSurvey += "<array type=\"array\"> <array>" + surveyResultArray [i][0] + "</array>"+
-						"<array>"+surveyResultArray[i][1];
-					xmlSurvey += "</array>";
+					if (surveyResultArray[i][0] != null) {
+						xmlSurvey += "<array type=\"array\"> <array>" + surveyResultArray [i][0] + "</array>"+
+							"<array>"+surveyResultArray[i][1]+"</array>";
+						xmlSurvey += "</array>";
+					}
+					
 				}
-				xmlSurvey += "</array>";
+				xmlSurvey += "</arrays>";
+				Window.alert(xmlSurvey);
 			String encData = URL.encode("survey_id")+"="+
 				URL.encode(takenSurveyID)+"&";
 			encData += URL.encode("initial_option")+"="+
