@@ -11,6 +11,31 @@ class DisplaySurvey extends JavaScriptObject
 	  return this.take_survey.suggestion;
 	}-*/;
 	
+	public final native String getStronglyAgree()
+	/*-{
+	  return this.take_survey.strongly_agree;
+	}-*/;
+	
+	public final native String getAgree()
+	/*-{
+	  return this.take_survey.agree;
+	}-*/;
+	
+	public final native String getNeutral()
+	/*-{
+	  return this.take_survey.neutral;
+	}-*/;
+	
+	public final native String getDisagree()
+	/*-{
+	  return this.take_survey.disagree;
+	}-*/;
+	
+	public final native String getStronglyDisagree()
+	/*-{
+	  return this.take_survey.strongly_disagree;
+	}-*/;
+	
 	public final native String getSurveyID()
 	/*-{
 	  return this.take_survey.surveyid;
@@ -29,5 +54,10 @@ class DisplaySurvey extends JavaScriptObject
 	public final native String getOption()
 	/*-{
 	  return this.take_survey.option_text;
+	}-*/;
+	
+	public final native String getTimesChosen()
+	/*-{
+	  return this.take_survey.times_chosen;
 	}-*/;
 }

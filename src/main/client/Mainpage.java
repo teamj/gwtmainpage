@@ -35,10 +35,22 @@ import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import java.util.List;
 
+//CHART STUFF
+import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.visualization.client.AbstractDataTable;
+import com.google.gwt.visualization.client.VisualizationUtils;
+import com.google.gwt.visualization.client.DataTable;
+import com.google.gwt.visualization.client.Selection;
+import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
+import com.google.gwt.visualization.client.events.SelectHandler;
+import com.google.gwt.visualization.client.visualizations.AreaChart;
+import com.google.gwt.visualization.client.visualizations.AreaChart.Options;
+//CHART STUFF
 
+@SuppressWarnings("deprecation")
 public class Mainpage implements EntryPoint, ClickHandler
 {
-	
+		
 	private static class UserInfo
 	{
 		private final String department;
@@ -54,7 +66,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			last_name = ln;
 		} 
 	}
-	
+			
 	ArrayList<UserInfo> users = new ArrayList<UserInfo>();
 	JsArray<User> jsonData;
 	
@@ -174,6 +186,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 	Button stronglyDisagreeButton = new Button("Strongly Disagree");
 	Button displaySurveyNextButton = new Button("Next");
 	Button displaySurveySubmitButton = new Button("Submit Survey");
+	Button noQuestionSubmitButton = new Button("Submit Survey");
 	String initialChosenOption = "";
 	String takenSurveyID = "";
 	int displaySurveyArrayIndex = 0;
@@ -182,13 +195,35 @@ public class Mainpage implements EntryPoint, ClickHandler
 	int prevSurvIndex = 0;
 	//final Button toGetOptionButton = new Button();
 	
+	//CHOOSE SURVEY CHART STUFF
+	Button surveyChartsButton = new Button("View survey results");
+	Button chooseChartSubmitButton = new Button("Submit");
+	VerticalPanel chooseChartPanel = new VerticalPanel();
+	ListBox choseChartListBox = new ListBox();	
+	//CHOOSE SURVEY CHART STUFF
+	
+	
+	
+	//CHART STUFF
+	VerticalPanel chartPanel = new VerticalPanel(); 
+	HorizontalPanel displayChartPanel = new HorizontalPanel();
+	VerticalPanel chartSuggPanel = new VerticalPanel();
+	DisplaySurvey chartData = null;
+	Label chartSuggLabel = new Label("");
+	JsArray<DisplaySurvey> chartDataArray;
+	
+	//CHART STUFF	
 	
 	
 	
 		        
 	public void onModuleLoad()
 	{
-              
+		
+		
+		             
+        
+        
         loginRow1.add(loginUsernameLabel);
         loginRow1.add(loginUsernameBox);
         loginRow2.add(loginPasswordLabel);
@@ -219,11 +254,15 @@ public class Mainpage implements EntryPoint, ClickHandler
 		chooseSurveySubmitButton.addClickHandler(this);
 		displaySurveyNextButton.addClickHandler(this);
 		displaySurveySubmitButton.addClickHandler(this);
+		noQuestionSubmitButton.addClickHandler(this);
 		stronglyAgreeButton.addClickHandler(this);	
 		agreeButton.addClickHandler(this);	
 		neutralButton.addClickHandler(this);
 		disagreeButton.addClickHandler(this);
 		stronglyDisagreeButton.addClickHandler(this);
+		surveyChartsButton.addClickHandler(this);
+		chooseChartSubmitButton.addClickHandler(this);
+		
 		//toGetOptionButton.addClickHandler(this);
 		//textarea.setCharacterWidth(50);
 		//textarea.setVisibleLines(25);
@@ -231,19 +270,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		adminButtonPanel.add(newUserButton);
 		adminButtonPanel.add(viewUsersButton);
 		adminPanel.add(adminButtonPanel);
-		
-		/*  //REFER TO THIS WHEN MAKING SURVEY PAGE
-		Label test = new Label("hi");
-		String[] myArray = {"hi","bye","good","bad"};
-		for (int i=0;i<myArray.length;i++) {
-			adminPanel.add(new Button(myArray[i], new ClickHandler() {
-				public void onClick(ClickEvent event) {
-					//SET THE LABEL TO THE OPTION WHEN THIS BUTTON IS CLICKED		
-				}
-			}));
-		}
-		*/
-		
+					
 		newUserPanel.add(row1);
 		row1.add(fnLabel);
 		row1.add(firstNameBox);
@@ -272,6 +299,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		surveyPanel.add(surveyButtonPanel);
 		surveyButtonPanel.add(createSurveyButton);
 		surveyButtonPanel.add(takeSurveyButton);
+		surveyButtonPanel.add(surveyChartsButton);
 		suggContainer.add(surveySuggLabel);
 		suggContainer.setHeight("100px");
 		surveySuggButtons.add(chooseSuggBackButton);
@@ -315,6 +343,15 @@ public class Mainpage implements EntryPoint, ClickHandler
 		displaySurveyPanel.add(displaySurveyQuestionLabel);
 		displaySurveyPanel.add(displaySurveyOptionPanel);
 		
+		chartPanel.add(chartSuggPanel);
+		chartPanel.setWidth("500px");
+		chartPanel.setCellHorizontalAlignment(displayChartPanel,HasHorizontalAlignment.ALIGN_CENTER);
+		chartPanel.setCellHorizontalAlignment(chartSuggPanel,HasHorizontalAlignment.ALIGN_CENTER);
+		chartPanel.add(displayChartPanel);
+		chartSuggPanel.add(chartSuggLabel);
+		chartSuggPanel.setHeight("75px");
+		chartSuggPanel.setCellHorizontalAlignment(chartSuggLabel,HasHorizontalAlignment.ALIGN_CENTER);
+				
 		
 		//RootPanel.get().add(loginPanel);
 		RootPanel.get().add(tabPanel);
@@ -323,8 +360,30 @@ public class Mainpage implements EntryPoint, ClickHandler
 		//getRequest(url);
 		//getRequest("http://localhost:3000/users/index.json");
 		
-	}
+		//final DisplaySurvey data = chartDataArray.get(0);
+		//String sugg = data.getSuggestion();
+		//final AbstractDataTable chartData = createTable("hi");
+		getRequest("http://localhost:3000/sugg_surveys/chartData.json");
 		
+		
+		/*
+		//TEST CHART
+		Runnable onLoadCallback = new Runnable()
+		{
+			public void run()
+			{
+				Panel panel = RootPanel.get();
+				AreaChart chart =
+					new AreaChart(createTable(),createOptions());
+				panel.add(chart);
+			}
+		};
+		VisualizationUtils.loadVisualizationApi(
+				onLoadCallback, AreaChart.PACKAGE);
+		//TEST CHART
+		*/
+	}
+			
 	private String makePendingSurveyHTML()
 	{
 		pendingSurveyHTML = "<table border='1'><tr><th>PENDING SURVEY</th></tr><tr><th>Title:</th></tr>";
@@ -550,6 +609,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveySuggID = null;
 			surveyTitle = null;
 			chooseSuggArrayIndex = 0;
+			surveyArrayIndex1 = 0;
+			surveyArrayIndex2 = 0;
 			for (int i=0;i<surveyArray.length;i++) {
 				for (int j=0;j<surveyArray[i].length;j++) {
 					surveyArray[i][j] = null;
@@ -574,29 +635,37 @@ public class Mainpage implements EntryPoint, ClickHandler
 		}
 		
 		else if (source == chooseSurveySubmitButton) {
-			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
-			surveyPanel.add(displaySurveyPanel);
-			displaySurveyOptionPanel.clear();
-			displaySurveyPanel.remove(displaySurveySubmitButton);
-			displaySurveyQuestionLabel.setText("");
-			chosenOptionLabel.setText("");
-			displaySurveyOptionPanel.add(stronglyAgreeButton);
-			displaySurveyOptionPanel.add(agreeButton);
-			displaySurveyOptionPanel.add(neutralButton);
-			displaySurveyOptionPanel.add(disagreeButton);
-			displaySurveyOptionPanel.add(stronglyDisagreeButton);
-			displaySurveyPanel.add(displaySurveyNextButton);
-			displaySurveyArrayIndex = 0;
-			prevSurvIndex = 0;
 			int index = chooseSurveyListBox.getSelectedIndex();
-			String value = chooseSurveyListBox.getValue(index);
-			Window.alert(value);
-			surveyPanel.add(displaySurveyPanel);
-			getRequest("http://localhost:3000/sugg_surveys/takeSurvey/"+value+".json");
-			//String encData = URL.encode("survey_id")+"=";
-			//  encData += URL.encode(value);
-			//postRequest("http://localhost:3000/sugg_surveys/takeSurvey/3.json",encData);
+			String surveyText = chooseSurveyListBox.getItemText(index);
+			if (surveyText.contains("(TAKEN)")) {
+				Window.alert("You have already taken this survey");
+			}
+			else {
+				surveyPanel.clear();
+				surveyPanel.add(surveyButtonPanel);
+				surveyPanel.add(displaySurveyPanel);
+				displaySurveyOptionPanel.clear();
+				displaySurveyPanel.remove(displaySurveySubmitButton);
+				displaySurveyQuestionLabel.setText("");
+				chosenOptionLabel.setText("");
+				displaySurveyOptionPanel.add(stronglyAgreeButton);
+				displaySurveyOptionPanel.add(agreeButton);
+				displaySurveyOptionPanel.add(neutralButton);
+				displaySurveyOptionPanel.add(disagreeButton);
+				displaySurveyOptionPanel.add(stronglyDisagreeButton);
+				displaySurveyPanel.add(displaySurveyNextButton);
+				displaySurveyArrayIndex = 0;
+				prevSurvIndex = 0;
+				surveyResultArrayIndex = 0;
+				index = chooseSurveyListBox.getSelectedIndex();
+				String value = chooseSurveyListBox.getValue(index);
+				Window.alert(value);
+				surveyPanel.add(displaySurveyPanel);
+				getRequest("http://localhost:3000/sugg_surveys/takeSurvey/"+value+".json");
+				//String encData = URL.encode("survey_id")+"=";
+				//  encData += URL.encode(value);
+				//postRequest("http://localhost:3000/sugg_surveys/takeSurvey/3.json",encData);
+			}
 		}
 		
 		else if (source == stronglyAgreeButton) {
@@ -615,29 +684,40 @@ public class Mainpage implements EntryPoint, ClickHandler
 			initialChosenOption = "strongly_disagree";
 			Window.alert(initialChosenOption);
 		}
+		else if (source == noQuestionSubmitButton) {
+			if (initialChosenOption.equals("")) {
+				Window.alert("Select An Option First");
+			}
+			else {
+				String encData = URL.encode("survey_id")+"=";
+				encData += URL.encode(takenSurveyID)+"&";
+				encData += URL.encode("initial_option")+"=";
+				encData += URL.encode(initialChosenOption);
+				postRequest("http://localhost:3000/sugg_surveys/surveyResult",encData);		
+			}
+		}
 		else if (source == displaySurveyNextButton) {
-			//getRequest("http://localhost:3000/sugg_surveys/takeSurvey/"+takenSurveyID+".json");
-			
 			String chosenOption = chosenOptionLabel.getText(); 
-			if (chosenOption.equals("default")) {
+			
+			if (chosenOption.equals("default") || initialChosenOption.equals("")) {
 				Window.alert("Select an option first");
 			}
 			else {
 				displaySurveyOptionPanel.clear();
-				//displaySurveyPanel.add(displaySurveyQuestionLabel);
 				DisplaySurvey survey = null;
 				survey = displaySurveyArray.get(displaySurveyArrayIndex);
 				DisplaySurvey prevSurv = null;
-				prevSurv = displaySurveyArray.get(prevSurvIndex);
-				surveyResultArray[surveyResultArrayIndex][0] = prevSurv.getQuestionID();
-							
-				//displaySurveySuggLabel.setText(survey.getSuggestion());
+				if (!chosenOption.equals("")) {
+					prevSurv = displaySurveyArray.get(displaySurveyArrayIndex - 1);
+					surveyResultArray[prevSurvIndex][0] = prevSurv.getQuestionID();	
+				}		
 				displaySurveyQuestionLabel.setText(survey.getQuestion());
-				for (int i = 0; i < displaySurveyArray.length(); i++) {
+				for (int i = displaySurveyArrayIndex; i < displaySurveyArray.length(); i++) {
 					String lastQuestion = displaySurveyQuestionLabel.getText();
-					survey = displaySurveyArray.get(i);	
-					String currentQuestion = survey.getQuestion();
-					final String option = survey.getOption();
+					DisplaySurvey survey2 = null;
+					survey2 = displaySurveyArray.get(i);	
+					String currentQuestion = survey2.getQuestion();
+					final String option = survey2.getOption();
 					if (currentQuestion.equals(lastQuestion)) {
 						displaySurveyOptionPanel.add(new Button(option,new ClickHandler() {
 							public void onClick(ClickEvent event) {
@@ -666,10 +746,18 @@ public class Mainpage implements EntryPoint, ClickHandler
 		}
 		
 		else if (source == displaySurveySubmitButton) {
+			
 			DisplaySurvey prevSurv = null;
-			prevSurv = displaySurveyArray.get(prevSurvIndex);
-			surveyResultArray[surveyResultArrayIndex][0] = prevSurv.getQuestionID();
-			surveyResultArray[surveyResultArrayIndex][1] = chosenOptionLabel.getText(); 
+			//if (chosenOption.equals("")) {
+			prevSurv = displaySurveyArray.get(displaySurveyArrayIndex - 1);
+			surveyResultArray[prevSurvIndex][0] = prevSurv.getQuestionID();
+			
+			//surveyResultArray[surveyResultArrayIndex][0] = prevSurv.getQuestionID();
+				
+			//}
+			//prevSurv = displaySurveyArray.get(prevSurvIndex);
+			//surveyResultArray[prevSurvIndex][0] = prevSurv.getQuestionID();
+			surveyResultArray[prevSurvIndex][1] = chosenOptionLabel.getText(); 
 			surveyPanel.clear();
 			surveyPanel.add(surveyButtonPanel);
 			Window.alert("Survey Submitted");
@@ -691,10 +779,157 @@ public class Mainpage implements EntryPoint, ClickHandler
 			encData += URL.encode("results_array")+"="+
 				URL.encode(xmlSurvey);
 			postRequest("http://localhost:3000/sugg_surveys/surveyResult",encData);
-		}		
+		}
 		
+		//START CHARTS
+		else if(source == surveyChartsButton) {
+			surveyPanel.clear();
+			surveyPanel.add(surveyButtonPanel);
+			displayChartPanel.clear();
+			surveyPanel.add(chartPanel);
+			
+			getRequest("http://localhost:3000/sugg_surveys/chartData.json");
+			Window.alert("Results Are Ready");
+			//DisplaySurvey chartData = null;
+			//chartData = chartDataArray.get(0);
+			//final String chartTitle = chartData.getQuestion();
+						
+			Runnable onLoadCallback = new Runnable()
+			{
+				public void run()
+				{
+					
+					AreaChart initialChart = new AreaChart(initialCreateTable(),initialCreateOptions());
+					//chartPanel.add(initialChart);
+					displayChartPanel.add(initialChart);
+					
+					DisplaySurvey chartData = chartDataArray.get(0);
+					String chartTitle = chartData.getQuestion();
+					//Window.alert(chartTitle);
+					if (chartTitle != null)
+						for (int i = 0;i < chartDataArray.length();i++) {
+							DisplaySurvey cData = chartDataArray.get(i);
+							String question = cData.getQuestion();
+							if (i == 0) {
+								displayChartPanel.add(new AreaChart(createTable(i),createOptions(chartTitle)));
+							}
+							if (!question.equals(chartTitle)) {
+								chartTitle = question;
+								displayChartPanel.add(new AreaChart(createTable(i),createOptions(chartTitle)));
+							}				
+										
+					}
+					//for (int i = 0;i < chartDataArray.length();i++) {
+					//	chartDataArray.get(i) = "";
+					//}
+					
+									
+				}
+			};
+			VisualizationUtils.loadVisualizationApi(onLoadCallback, AreaChart.PACKAGE);
+			
+								
+		}		
+		//END CHARTS
 	}
-    
+	
+	private Options createOptions(String title)
+	{
+		Options options = Options.create();
+		options.setWidth(400);
+		options.setHeight(240);
+		options.setTitle(title);
+		return options;
+	}
+	
+	
+	private AbstractDataTable createTable(int i)
+	{
+		//DisplaySurvey chartData = null;
+		DisplaySurvey data = null;
+		data = chartDataArray.get(i);
+		String lastQuestion = data.getQuestion();
+		int row = 0;
+		DataTable initialData = DataTable.create();
+		initialData.addColumn(ColumnType.STRING,"Option");
+		initialData.addColumn(ColumnType.NUMBER,"Times Chosen");
+		for (int j = i; j < chartDataArray.length();j++) {
+			DisplaySurvey chartData = chartDataArray.get(j);
+			String currentQuestion = chartData.getQuestion();
+						
+			if (currentQuestion.equals(lastQuestion)) {
+				String option = chartData.getOption();
+				String timesChosenStr = chartData.getTimesChosen();
+				int timesChosen = Integer.parseInt(timesChosenStr);
+				initialData.addRow();
+				initialData.setValue(row, 0, option);
+				initialData.setValue(row, 1, timesChosen);	
+				row++;
+			}	
+		}
+		return initialData;	
+		
+		
+		
+		/*
+		initialData.addRows(5);
+		initialData.setValue(0,0,"Strongly Agree");
+		initialData.setValue(0,1,data.getStronglyAgree());
+		//initialData.setValue(0,1,2);
+		initialData.setValue(1,0,"Agree");
+		initialData.setValue(1,1,data.getAgree());
+		//initialData.setValue(1,1,3);
+		initialData.setValue(2,0,"Neutral");
+		initialData.setValue(2,1,data.getNeutral());
+		//initialData.setValue(2,1,4);
+		initialData.setValue(3,0,"Disagree");
+		initialData.setValue(3,1,data.getDisagree());
+		//initialData.setValue(3,1,5);
+		initialData.setValue(4,0,"Strongly Disagree");
+		initialData.setValue(4,1,data.getStronglyDisagree());
+		//initialData.setValue(4,1,3);
+		
+		*/
+	}
+	
+	private Options initialCreateOptions()
+	{
+		Options initialOptions = Options.create();
+		initialOptions.setWidth(400);
+		initialOptions.setHeight(240);
+		initialOptions.setTitle("General Rating of the Suggestion");
+		return initialOptions;
+	}
+	
+	
+	private AbstractDataTable initialCreateTable()
+	{
+		//DisplaySurvey chartData = null;
+		DisplaySurvey data = null;
+		data = chartDataArray.get(0);
+		String sugg = "hi";
+		DataTable initialData = DataTable.create();
+		initialData.addColumn(ColumnType.STRING,"Option");
+		initialData.addColumn(ColumnType.NUMBER,"Times Chosen");
+		initialData.addRows(5);
+		initialData.setValue(0,0,"Strongly Agree");
+		initialData.setValue(0,1,data.getStronglyAgree());
+		//initialData.setValue(0,1,2);
+		initialData.setValue(1,0,"Agree");
+		initialData.setValue(1,1,data.getAgree());
+		//initialData.setValue(1,1,3);
+		initialData.setValue(2,0,"Neutral");
+		initialData.setValue(2,1,data.getNeutral());
+		//initialData.setValue(2,1,4);
+		initialData.setValue(3,0,"Disagree");
+		initialData.setValue(3,1,data.getDisagree());
+		//initialData.setValue(3,1,5);
+		initialData.setValue(4,0,"Strongly Disagree");
+		initialData.setValue(4,1,data.getStronglyDisagree());
+		//initialData.setValue(4,1,3);
+		return initialData;	
+	}
+			 
 	private void getRequest(String url)
 	{
 		final RequestBuilder rb =
@@ -728,6 +963,30 @@ public class Mainpage implements EntryPoint, ClickHandler
 				        surveySuggIDHidden.setValue(sugg.getSuggestionID());
 					}
 					
+					else if(resp.contains("json_chart_data")) {
+						String newResp = resp.replace(",\"json_chart_data\"]", "]");
+						chartDataArray = getDisplaySurveyArray(newResp);
+						DisplaySurvey chartData = chartDataArray.get(0);
+						//Window.alert(newResp);
+						chartSuggLabel.setText(chartData.getSuggestion());					
+						/*
+						Runnable onLoadCallback = new Runnable()
+						{
+							public void run()
+							{
+								
+								AreaChart initialChart = new AreaChart(createTable(),createOptions());
+								chartPanel.add(initialChart);
+								
+							}
+						};
+						
+						VisualizationUtils.loadVisualizationApi(onLoadCallback, AreaChart.PACKAGE);
+						*/
+						
+					}
+					
+					
 					else if (resp.contains("json_user_sugg_by_div")) {
 						String newResp = resp.replace(",\"json_user_sugg_by_div\"]", "]");
 						chooseSuggArray = getSurveySuggArray(newResp);
@@ -756,7 +1015,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 						String question = survey.getQuestion();
 						if (question == null) {
 							displaySurveyPanel.remove(displaySurveyNextButton);
-							displaySurveyPanel.add(displaySurveySubmitButton);
+							//displaySurveyPanel.add(displaySurveySubmitButton);
+							displaySurveyPanel.add(noQuestionSubmitButton);
 						}
 						String suggText = survey.getSuggestion();
 						displaySurveySuggLabel.setText(suggText);
