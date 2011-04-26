@@ -39,3 +39,10 @@ h1 {
   border-color: ;
   border-style: solid
 }
+
+.usersBoxPanel {
+  padding: 3mm 3mm 3mm 3mm;
+  border: 1px;
+  border-color: #e0e0e0;
+  border-style: solid
+}

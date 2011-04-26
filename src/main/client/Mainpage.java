@@ -111,11 +111,13 @@ public class Mainpage implements EntryPoint, ClickHandler
     //Frame displayUsers = new Frame("http://localhost:3000/users/index");
         
     HorizontalPanel adminPanel = new HorizontalPanel();
+    VerticalPanel adminButtonBoxPanel = new VerticalPanel();
     VerticalPanel adminButtonPanel = new VerticalPanel();
     Button newUserButton = new Button("New User");
     Button viewUsersButton = new Button("View Users");
     HTML displayUsers = new HTML();
     String displayUsersURL = "http://localhost:3000/users/index";
+    VerticalPanel usersCellTablePanel = new VerticalPanel();
         
     VerticalPanel newUserBoxPanel = new VerticalPanel();
     VerticalPanel newUserPanel = new VerticalPanel();
@@ -146,6 +148,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 	HorizontalPanel suggPanel = new HorizontalPanel();
 	VerticalPanel newSuggPanel = new VerticalPanel();
 	Button newSuggSubmitButton =  new Button("Submit");
+	VerticalPanel suggButtonBoxPanel = new VerticalPanel();
     VerticalPanel suggButtonPanel = new VerticalPanel();
     //CellPanel suggButtonPanel;
     Button makeSuggButton = new Button("Make A Suggestion");
@@ -170,6 +173,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 	CellTable<AllSuggs> suggsCellTable = new CellTable<AllSuggs>(allSuggs.size());
     
     HorizontalPanel surveyPanel = new HorizontalPanel();
+    VerticalPanel surveyButtonBoxPanel = new VerticalPanel();
     VerticalPanel surveyButtonPanel = new VerticalPanel();
     Button createSurveyButton = new Button("Create A Survey");
     Button takeSurveyButton = new Button("Take A Survey");
@@ -268,9 +272,11 @@ public class Mainpage implements EntryPoint, ClickHandler
 	String userType = "";	
 	
 	HorizontalPanel displayUsersPanel = new HorizontalPanel();
+	VerticalPanel displayUsersButtonBoxPanel = new VerticalPanel();
 	VerticalPanel displayUsersButtonPanel = new VerticalPanel();
 	Button viewDivUsers = new Button("View Division Users");
 	Button viewDepUsers = new Button("View Department Users");
+	VerticalPanel displayUsersCellTable = new VerticalPanel();
 	
 	VerticalPanel divSuggsChartPanel = new VerticalPanel();
 	Button divSuggsChartButton = new Button("Number Of Suggestions");
@@ -293,6 +299,8 @@ public class Mainpage implements EntryPoint, ClickHandler
         loginInputPanel.add(loginRow2);
         loginInputPanel.add(loginSubmitButton);
         loginPanel.add(loginInputPanel);
+        loginPanel.setWidth("100%");
+        loginPanel.setCellHorizontalAlignment(loginInputPanel, HasHorizontalAlignment.ALIGN_CENTER);
         //loginPanel.add(trialArea);   //TTEST TEST TEST
         
         
@@ -336,9 +344,11 @@ public class Mainpage implements EntryPoint, ClickHandler
 		//textarea.setCharacterWidth(50);
 		//textarea.setVisibleLines(25);
 				
+		adminButtonBoxPanel.add(adminButtonPanel);
+		adminButtonBoxPanel.setStyleName("adminButtonBoxPanel");
 		adminButtonPanel.add(newUserButton);
 		adminButtonPanel.add(viewUsersButton);
-		adminPanel.add(adminButtonPanel);
+		adminPanel.add(adminButtonBoxPanel);
 		adminPanel.setSpacing(7);
 							
 		newUserBoxPanel.add(newUserPanel);
@@ -364,13 +374,15 @@ public class Mainpage implements EntryPoint, ClickHandler
 		newUserPanel.add(newUserSubmitButton);
 		tabPanel.add(adminPanel, "Admin");
 				
+		suggButtonBoxPanel.add(suggButtonPanel);
+		suggButtonBoxPanel.setStyleName("suggButtonBoxPanel");
 		suggButtonPanel.setSpacing(7);
 		suggButtonPanel.add(makeSuggButton);
 		suggButtonPanel.add(editOwnSuggButton);
 		suggButtonPanel.add(editDivSuggButton);
 		suggButtonPanel.add(viewAllSuggButton);
 		suggButtonPanel.add(divSuggsChartButton);
-		suggPanel.add(suggButtonPanel);
+		suggPanel.add(suggButtonBoxPanel);
 		newSuggPanel.add(newSuggArea);
 		newSuggPanel.add(newSuggSubmitButton);
 		newSuggPanel.setWidth("400px");
@@ -382,7 +394,9 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		tabPanel.add(suggPanel, "Suggestions");
 		
-		surveyPanel.add(surveyButtonPanel);
+		surveyPanel.add(surveyButtonBoxPanel);
+		surveyButtonBoxPanel.add(surveyButtonPanel);
+		surveyButtonBoxPanel.setStyleName("surveyButtonBoxPanel");
 		surveyButtonPanel.setSpacing(7);
 		surveyButtonPanel.add(createSurveyButton);
 		surveyButtonPanel.add(takeSurveyButton);
@@ -471,10 +485,13 @@ public class Mainpage implements EntryPoint, ClickHandler
 		chartSuggPanel.setHeight("75px");
 		chartSuggPanel.setCellHorizontalAlignment(chartSuggLabel,HasHorizontalAlignment.ALIGN_CENTER);
 		
+		displayUsersButtonBoxPanel.add(displayUsersButtonPanel);
+		displayUsersButtonBoxPanel.setStyleName("usersBoxPanel");
 		displayUsersButtonPanel.setSpacing(7);
 		displayUsersButtonPanel.add(viewDivUsers);
 		displayUsersButtonPanel.add(viewDepUsers);
-		displayUsersPanel.add(displayUsersButtonPanel);
+		displayUsersPanel.add(displayUsersButtonBoxPanel);
+		displayUsersPanel.add(displayUsersCellTable);
 		
 		tabPanel.add(displayUsersPanel, "Division Users");		
 		RootPanel.get().add(loginPanel);
@@ -546,16 +563,21 @@ public class Mainpage implements EntryPoint, ClickHandler
 										
 		else if (source == newUserButton) {
 			adminPanel.clear();
-			adminPanel.add(adminButtonPanel);
+			adminPanel.add(adminButtonBoxPanel);
+			adminButtonBoxPanel.add(adminButtonPanel);
 			//adminPanel.add(newUserPanel);
 			adminPanel.add(newUserBoxPanel);
+			adminPanel.add(usersCellTablePanel);
 			//adminPanel.add(displayUsers);
 			//getRequest(displayUsersURL);
 			users.clear();
 			table = new CellTable<UserInfo>(users.size());
 			usersCellTablePager.setDisplay(table);
-			adminPanel.add(usersCellTablePager);
-			adminPanel.add(table);
+			//adminPanel.add(usersCellTablePager);
+			//adminPanel.add(table);
+			usersCellTablePanel.clear();
+			usersCellTablePanel.add(usersCellTablePager);
+			usersCellTablePanel.add(table);
 			getRequest("http://localhost:3000/users/index.json");
 					
 			//adminPanel.add(size);  Used To check size of ArrayList
@@ -564,14 +586,19 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		else if (source == viewUsersButton) {
 		    adminPanel.clear();
-		    adminPanel.add(adminButtonPanel);
+		    adminPanel.add(adminButtonBoxPanel);
+		    adminButtonBoxPanel.add(adminButtonPanel);
+		    adminPanel.add(usersCellTablePanel);
 			//adminPanel.add(displayUsers);
 			//getRequest(displayUsersURL);
 			users.clear();
 			table = new CellTable<UserInfo>(users.size());
 			usersCellTablePager.setDisplay(table);
-			adminPanel.add(usersCellTablePager);
-			adminPanel.add(table);
+			usersCellTablePanel.clear();
+			usersCellTablePanel.add(usersCellTablePager);
+			usersCellTablePanel.add(table);
+			//adminPanel.add(usersCellTablePager);
+			//adminPanel.add(table);
 			getRequest("http://localhost:3000/users/index.json");
 			
 			
@@ -579,7 +606,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		else if (source == newUserSubmitButton) {
 			adminPanel.clear();
-			adminPanel.add(adminButtonPanel);
+			adminPanel.add(adminButtonBoxPanel);
+			adminButtonBoxPanel.add(adminButtonPanel);
 			adminPanel.add(newUserPanel);
 			String encData = URL.encode("first_name") + "=" +
 				URL.encode(firstNameBox.getText()) + "&";
@@ -610,7 +638,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		else if (source == createSurveyButton) {
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
 			chooseSuggArrayIndex = 0;
 			getRequest("http://localhost:3000/user_suggestions/divChairView.json");
 			
@@ -657,7 +685,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveySugg = surveySuggLabel.getText();
 			surveySuggID = surveySuggIDHidden.getValue();
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
+			surveyButtonBoxPanel.add(surveyButtonPanel);
 			surveyPanel.add(newSurveyPanel);
 			surveyPanel.add(pendingSurvey);
 			pendingSurvey.setHTML(makePendingSurveyHTML());
@@ -671,7 +700,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 				surveyTitle = surveyTitleBox.getText();
 				surveyTitleBox.setText("");
 				surveyPanel.clear();
-				surveyPanel.add(surveyButtonPanel);
+				surveyPanel.add(surveyButtonBoxPanel);
+				surveyButtonBoxPanel.add(surveyButtonPanel);
 				surveyPanel.add(surveyQuestionPanel);
 				pendingSurvey.setHTML(makePendingSurveyHTML());
 				surveyPanel.add(pendingSurvey);
@@ -684,7 +714,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveyQuestionArea.setText("");
 			surveyArrayIndex2++;
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
+			surveyButtonBoxPanel.add(surveyButtonPanel);
 			surveyPanel.add(surveyOptionsPanel);
 			pendingSurvey.setHTML(makePendingSurveyHTML());
 			surveyPanel.add(pendingSurvey);
@@ -699,7 +730,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		else if (source == addQuestionButton) {
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
+			surveyButtonBoxPanel.add(surveyButtonPanel);
 			surveyPanel.add(surveyQuestionPanel);
 			surveyPanel.add(pendingSurvey);
 			surveyArrayIndex1++;
@@ -744,7 +776,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			}
 			Label surveyCreated = new Label("Survey Has Been Created");
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
 			pendingSurvey.setHTML(makePendingSurveyHTML());
 			surveyPanel.add(surveyCreated);
 			//Window.alert(xmlSurvey);
@@ -754,7 +786,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		else if (source == takeSurveyButton) {
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
+			surveyButtonBoxPanel.add(surveyButtonPanel);
 			surveyPanel.add(chooseSurveyPanel);
 			chooseSurveyListBox.clear();
 			getRequest("http://localhost:3000/sugg_surveys/chooseSurvey.json");
@@ -768,7 +801,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			}
 			else {
 				surveyPanel.clear();
-				surveyPanel.add(surveyButtonPanel);
+				surveyPanel.add(surveyButtonBoxPanel);
 				surveyPanel.add(displaySurveyPanel);
 				displaySurveyOptionPanel.clear();
 				displaySurveyPanel.remove(displaySurveySubmitButton);
@@ -823,7 +856,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			else {
 				Window.alert("Survey Has Been Submitted");
 				surveyPanel.clear();
-				surveyPanel.add(surveyButtonPanel);
+				surveyPanel.add(surveyButtonBoxPanel);
 				String encData = URL.encode("survey_id")+"=";
 				encData += URL.encode(takenSurveyID)+"&";
 				encData += URL.encode("initial_option")+"=";
@@ -897,7 +930,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			//surveyResultArray[prevSurvIndex][0] = prevSurv.getQuestionID();
 			surveyResultArray[prevSurvIndex][1] = chosenOptionLabel.getText(); 
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
 			Window.alert("Survey Has Been Submitted");
 			String xmlSurvey = "\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><arrays type=\"array\">"; 
 				for (int i=0;i<surveyResultArray.length;i++) {
@@ -923,7 +956,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			String id = chooseChartListBox.getValue(index);
 			surveyPanel.clear();
 			
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
 			surveyPanel.add(chartPanel);
 			getRequest("http://localhost:3000/sugg_surveys/chartData/"+id+".json");
 			
@@ -933,7 +966,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 		//START CHARTS
 		else if(source == surveyChartsButton) {
 			surveyPanel.clear();
-			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(surveyButtonBoxPanel);
+			surveyButtonBoxPanel.add(surveyButtonPanel);
 			displayChartPanel.clear();
 			chooseChartListBox.clear();
 			surveyPanel.add(chooseChartPanel);
@@ -945,7 +979,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		else if(source == makeSuggButton) {
 			suggPanel.clear();
 			newSuggArea.setText("");
-			suggPanel.add(suggButtonPanel);
+			suggPanel.add(suggButtonBoxPanel);
 			suggPanel.add(newSuggPanel);
 		}
 		
@@ -957,7 +991,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			else {
 				suggPanel.clear();
 				newSuggArea.setText("");
-				suggPanel.add(suggButtonPanel);
+				suggPanel.add(suggButtonBoxPanel);
 				String encData = URL.encode("suggestion")+"="+
 					URL.encode(sugg);
 				postRequest("http://localhost:3000/user_suggestions/create", encData);
@@ -968,7 +1002,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			suggPanel.clear();
 			editOwnSuggPanel.clear();
 			editOwnSuggListBox.clear();
-			suggPanel.add(suggButtonPanel);
+			suggPanel.add(suggButtonBoxPanel);
 			suggPanel.add(editOwnSuggPanel);
 			editOwnSuggPanel.add(editOwnSuggListBox);
 			editOwnSuggPanel.add(chooseEditSuggButton);
@@ -998,7 +1032,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			currentSuggText = "";
 			currentSuggID = "";
 			suggPanel.clear();
-			suggPanel.add(suggButtonPanel);
+			suggPanel.add(suggButtonBoxPanel);
 			String encData = URL.encode("suggestionid")+"="+
 				URL.encode(suggID)+"&";
 			encData += URL.encode("suggestion")+"="+
@@ -1010,7 +1044,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			suggPanel.clear();
 			editOwnSuggPanel.clear();
 			editOwnSuggListBox.clear();
-			suggPanel.add(suggButtonPanel);
+			suggPanel.add(suggButtonBoxPanel);
 			suggPanel.add(editOwnSuggPanel);
 			editOwnSuggPanel.add(editOwnSuggListBox);
 			editOwnSuggPanel.add(chooseEditSuggButton);
@@ -1028,36 +1062,44 @@ public class Mainpage implements EntryPoint, ClickHandler
 			suggsCellTablePager.setDisplay(suggsCellTable);
 			viewAllSuggPanel.add(suggsCellTablePager);
 			viewAllSuggPanel.add(suggsCellTable);
-			suggPanel.add(suggButtonPanel);
+			suggPanel.add(suggButtonBoxPanel);
 			suggPanel.add(viewAllSuggPanel);
 			getRequest("http://localhost:3000/user_suggestions/allSuggestions.json");
 		}
 		
 		else if (source == viewDivUsers) {
 			displayUsersPanel.clear();
-			displayUsersPanel.add(displayUsersButtonPanel);
+			displayUsersPanel.add(displayUsersButtonBoxPanel);
+			displayUsersPanel.add(displayUsersCellTable);
 			users.clear();
 			table = new CellTable<UserInfo>(users.size());
 			usersCellTablePager.setDisplay(table);
-			displayUsersPanel.add(usersCellTablePager);
-			displayUsersPanel.add(table);
+			//displayUsersPanel.add(usersCellTablePager);
+			//displayUsersPanel.add(table);
+			displayUsersCellTable.clear();
+			displayUsersCellTable.add(usersCellTablePager);
+			displayUsersCellTable.add(table);
 			getRequest("http://localhost:3000/users/index/"+"div"+".json");
 		}
 		
 		else if (source == viewDepUsers) {
 			displayUsersPanel.clear();
-			displayUsersPanel.add(displayUsersButtonPanel);
+			displayUsersPanel.add(displayUsersButtonBoxPanel);
+			displayUsersPanel.add(displayUsersCellTable);
 			users.clear();
 			table = new CellTable<UserInfo>(users.size());
 			usersCellTablePager.setDisplay(table);
-			displayUsersPanel.add(usersCellTablePager);
-			displayUsersPanel.add(table);
+			//displayUsersPanel.add(usersCellTablePager);
+			//displayUsersPanel.add(table);
+			displayUsersCellTable.clear();
+			displayUsersCellTable.add(usersCellTablePager);
+			displayUsersCellTable.add(table);
 			getRequest("http://localhost:3000/users/index/"+"dep"+".json");	
 		}
 		
 		else if (source == divSuggsChartButton) {
 			suggPanel.clear();
-			suggPanel.add(suggButtonPanel);
+			suggPanel.add(suggButtonBoxPanel);
 			divSuggsChartPanel.clear();
 			suggPanel.add(divSuggsChartPanel);
 			getRequest("http://localhost:3000/user_suggestions/numSuggsByDiv.json");
