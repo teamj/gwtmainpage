@@ -567,18 +567,19 @@ public class Mainpage implements EntryPoint, ClickHandler
 			adminButtonBoxPanel.add(adminButtonPanel);
 			//adminPanel.add(newUserPanel);
 			adminPanel.add(newUserBoxPanel);
-			adminPanel.add(usersCellTablePanel);
+			newUserBoxPanel.add(newUserPanel);
+			//adminPanel.add(usersCellTablePanel);
 			//adminPanel.add(displayUsers);
 			//getRequest(displayUsersURL);
-			users.clear();
-			table = new CellTable<UserInfo>(users.size());
-			usersCellTablePager.setDisplay(table);
+			//users.clear();
+			//table = new CellTable<UserInfo>(users.size());
+			//usersCellTablePager.setDisplay(table);
 			//adminPanel.add(usersCellTablePager);
 			//adminPanel.add(table);
-			usersCellTablePanel.clear();
-			usersCellTablePanel.add(usersCellTablePager);
-			usersCellTablePanel.add(table);
-			getRequest("http://localhost:3000/users/index.json");
+			//usersCellTablePanel.clear();
+			//usersCellTablePanel.add(usersCellTablePager);
+			//usersCellTablePanel.add(table);
+			//getRequest("http://localhost:3000/users/index.json");
 					
 			//adminPanel.add(size);  Used To check size of ArrayList
 			
@@ -608,7 +609,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 			adminPanel.clear();
 			adminPanel.add(adminButtonBoxPanel);
 			adminButtonBoxPanel.add(adminButtonPanel);
-			adminPanel.add(newUserPanel);
+			adminPanel.add(newUserBoxPanel);
+			newUserBoxPanel.add(newUserPanel);
 			String encData = URL.encode("first_name") + "=" +
 				URL.encode(firstNameBox.getText()) + "&";
 			encData += URL.encode("last_name") + "=" +
@@ -627,13 +629,16 @@ public class Mainpage implements EntryPoint, ClickHandler
 			passwordBox.setText("");
 			divisionBox.setText("");
 			departmentBox.setText("");
-			users.clear();
-			table = new CellTable<UserInfo>();
-			usersCellTablePager.setDisplay(table);
-			adminPanel.add(usersCellTablePager);
+			//users.clear();
+			//table = new CellTable<UserInfo>();
+			//usersCellTablePager.setDisplay(table);
+			//adminPanel.add(usersCellTablePanel);
+			//usersCellTablePanel.clear();
+			//usersCellTablePanel.add(usersCellTablePager);
+			//usersCellTablePanel.add(table);
 			String url = "http://localhost:3000/users/create";
 			postRequest(url,encData);
-			getRequest("http://localhost:3000/users/index.json");
+			//getRequest("http://localhost:3000/users/index.json");
 		}
 		
 		else if (source == createSurveyButton) {
