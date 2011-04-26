@@ -1,6 +1,6 @@
 package main.client;
 
-
+import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -34,6 +34,8 @@ import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import java.util.List;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.CellPanel;
 
 //CHART STUFF
 import com.google.gwt.user.client.ui.Panel;
@@ -44,7 +46,9 @@ import com.google.gwt.visualization.client.Selection;
 import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
 import com.google.gwt.visualization.client.events.SelectHandler;
 import com.google.gwt.visualization.client.visualizations.AreaChart;
-import com.google.gwt.visualization.client.visualizations.AreaChart.Options;
+//import com.google.gwt.visualization.client.visualizations.AreaChart.Options;
+import com.google.gwt.visualization.client.visualizations.ColumnChart;
+import com.google.gwt.visualization.client.visualizations.ColumnChart.Options;
 //CHART STUFF
 
 @SuppressWarnings("deprecation")
@@ -65,6 +69,24 @@ public class Mainpage implements EntryPoint, ClickHandler
 			first_name = fn;
 			last_name = ln;
 		} 
+	}
+	
+	private static class AllSuggs
+	{
+		private final String suggestion;
+		private final String department;
+		private final String division;
+		private final String createdAt;
+		private final String updatedAt;
+		
+		public AllSuggs(String sugg, String dep, String div, String ca, String ua)
+		{
+			suggestion = sugg;
+			department = dep;
+			division = div;
+			createdAt = ca;
+			updatedAt = ua;
+		}
 	}
 			
 	ArrayList<UserInfo> users = new ArrayList<UserInfo>();
@@ -95,6 +117,7 @@ public class Mainpage implements EntryPoint, ClickHandler
     HTML displayUsers = new HTML();
     String displayUsersURL = "http://localhost:3000/users/index";
         
+    VerticalPanel newUserBoxPanel = new VerticalPanel();
     VerticalPanel newUserPanel = new VerticalPanel();
     Button newUserSubmitButton = new Button("Submit");
         
@@ -119,9 +142,32 @@ public class Mainpage implements EntryPoint, ClickHandler
 	Label divLabel = new Label("Division: ");
 	Label depLabel = new Label("Department: ");
 	
+	
 	HorizontalPanel suggPanel = new HorizontalPanel();
+	VerticalPanel newSuggPanel = new VerticalPanel();
+	Button newSuggSubmitButton =  new Button("Submit");
     VerticalPanel suggButtonPanel = new VerticalPanel();
+    //CellPanel suggButtonPanel;
     Button makeSuggButton = new Button("Make A Suggestion");
+    TextArea newSuggArea = new TextArea();
+    
+    VerticalPanel editOwnSuggPanel = new VerticalPanel();
+    Button editOwnSuggButton = new Button("Edit Your Suggestion");
+    ListBox editOwnSuggListBox = new ListBox();
+    TextArea editOwnSuggArea = new TextArea();
+    Button editOwnSuggSubmitButton = new Button("Submit");
+    Button chooseEditSuggButton = new Button("Submit");
+    JsArray<ChooseSugg> chooseEditSuggArray;
+    String currentSuggText = "";
+    String currentSuggID = "";
+    Button editDivSuggButton = new Button("Edit Division Suggestions");
+    
+    VerticalPanel viewAllSuggPanel = new VerticalPanel();
+    Button viewAllSuggButton = new Button("View Division Suggestions");
+    JsArray<ChooseSugg> allSuggArray;
+    ArrayList<AllSuggs> allSuggs = new ArrayList<AllSuggs>();
+    SimplePager suggsCellTablePager = new SimplePager();
+	CellTable<AllSuggs> suggsCellTable = new CellTable<AllSuggs>(allSuggs.size());
     
     HorizontalPanel surveyPanel = new HorizontalPanel();
     VerticalPanel surveyButtonPanel = new VerticalPanel();
@@ -175,8 +221,12 @@ public class Mainpage implements EntryPoint, ClickHandler
 	Button chooseSurveySubmitButton = new Button("Submit");
 	
 	VerticalPanel displaySurveyPanel = new VerticalPanel();
+	VerticalPanel displaySurveySuggPanel = new VerticalPanel();
 	Label displaySurveySuggLabel = new Label("");
 	Label chosenOptionLabel = new Label("");
+	HorizontalPanel currentOptionPanel = new HorizontalPanel(); 
+	HTML currentOptionLabel = new HTML("<b>Current Choice: </b>");
+	VerticalPanel displaySurveyQuestionPanel = new VerticalPanel();
 	Label displaySurveyQuestionLabel = new Label("");
 	HorizontalPanel displaySurveyOptionPanel = new HorizontalPanel();
 	Button stronglyAgreeButton = new Button("Strongly Agree");
@@ -199,7 +249,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 	Button surveyChartsButton = new Button("View survey results");
 	Button chooseChartSubmitButton = new Button("Submit");
 	VerticalPanel chooseChartPanel = new VerticalPanel();
-	ListBox choseChartListBox = new ListBox();	
+	ListBox chooseChartListBox = new ListBox();
+	JsArray<ChooseSurvey> chooseChartDataArray;	
 	//CHOOSE SURVEY CHART STUFF
 	
 	
@@ -207,12 +258,22 @@ public class Mainpage implements EntryPoint, ClickHandler
 	//CHART STUFF
 	VerticalPanel chartPanel = new VerticalPanel(); 
 	HorizontalPanel displayChartPanel = new HorizontalPanel();
+	//FlowPanel displayChartPanel = new FlowPanel();
 	VerticalPanel chartSuggPanel = new VerticalPanel();
 	DisplaySurvey chartData = null;
 	Label chartSuggLabel = new Label("");
 	JsArray<DisplaySurvey> chartDataArray;
+	//CHART STUFF
 	
-	//CHART STUFF	
+	String userType = "";	
+	
+	HorizontalPanel displayUsersPanel = new HorizontalPanel();
+	VerticalPanel displayUsersButtonPanel = new VerticalPanel();
+	Button viewDivUsers = new Button("View Division Users");
+	Button viewDepUsers = new Button("View Department Users");
+	
+	VerticalPanel divSuggsChartPanel = new VerticalPanel();
+	Button divSuggsChartButton = new Button("Number Of Suggestions");
 	
 	
 	
@@ -232,8 +293,6 @@ public class Mainpage implements EntryPoint, ClickHandler
         loginInputPanel.add(loginRow2);
         loginInputPanel.add(loginSubmitButton);
         loginPanel.add(loginInputPanel);
-        trialArea.setVisibleLines(25);
-        trialArea.setCharacterWidth(50);
         //loginPanel.add(trialArea);   //TTEST TEST TEST
         
         
@@ -262,6 +321,16 @@ public class Mainpage implements EntryPoint, ClickHandler
 		stronglyDisagreeButton.addClickHandler(this);
 		surveyChartsButton.addClickHandler(this);
 		chooseChartSubmitButton.addClickHandler(this);
+		makeSuggButton.addClickHandler(this);
+		newSuggSubmitButton.addClickHandler(this);
+		editOwnSuggButton.addClickHandler(this);
+		editOwnSuggSubmitButton.addClickHandler(this);
+		chooseEditSuggButton.addClickHandler(this);
+		editDivSuggButton.addClickHandler(this);
+		viewAllSuggButton.addClickHandler(this);
+		viewDivUsers.addClickHandler(this);
+		viewDepUsers.addClickHandler(this);
+		divSuggsChartButton.addClickHandler(this);
 		
 		//toGetOptionButton.addClickHandler(this);
 		//textarea.setCharacterWidth(50);
@@ -270,7 +339,10 @@ public class Mainpage implements EntryPoint, ClickHandler
 		adminButtonPanel.add(newUserButton);
 		adminButtonPanel.add(viewUsersButton);
 		adminPanel.add(adminButtonPanel);
-					
+		adminPanel.setSpacing(7);
+							
+		newUserBoxPanel.add(newUserPanel);
+		newUserBoxPanel.setStyleName("newUserBoxPanel");
 		newUserPanel.add(row1);
 		row1.add(fnLabel);
 		row1.add(firstNameBox);
@@ -292,11 +364,26 @@ public class Mainpage implements EntryPoint, ClickHandler
 		newUserPanel.add(newUserSubmitButton);
 		tabPanel.add(adminPanel, "Admin");
 				
+		suggButtonPanel.setSpacing(7);
 		suggButtonPanel.add(makeSuggButton);
+		suggButtonPanel.add(editOwnSuggButton);
+		suggButtonPanel.add(editDivSuggButton);
+		suggButtonPanel.add(viewAllSuggButton);
+		suggButtonPanel.add(divSuggsChartButton);
 		suggPanel.add(suggButtonPanel);
+		newSuggPanel.add(newSuggArea);
+		newSuggPanel.add(newSuggSubmitButton);
+		newSuggPanel.setWidth("400px");
+		newSuggPanel.setCellHorizontalAlignment(newSuggArea,HasHorizontalAlignment.ALIGN_CENTER);
+		newSuggPanel.setCellHorizontalAlignment(newSuggSubmitButton,HasHorizontalAlignment.ALIGN_CENTER);
+		
+		viewAllSuggPanel.add(suggsCellTablePager);
+		viewAllSuggPanel.add(suggsCellTable);
+		
 		tabPanel.add(suggPanel, "Suggestions");
 		
 		surveyPanel.add(surveyButtonPanel);
+		surveyButtonPanel.setSpacing(7);
 		surveyButtonPanel.add(createSurveyButton);
 		surveyButtonPanel.add(takeSurveyButton);
 		surveyButtonPanel.add(surveyChartsButton);
@@ -336,57 +423,69 @@ public class Mainpage implements EntryPoint, ClickHandler
 		surveyButtonRow.add(addOptionButton);
 		surveyButtonRow.add(submitSurveyButton);
 		chooseSurveyPanel.add(chooseSurveyListBox);
+		chooseSurveyPanel.setWidth("400px");
 		chooseSurveyPanel.add(chooseSurveySubmitButton);
+		chooseSurveyPanel.setCellHorizontalAlignment(chooseSurveyListBox, HasHorizontalAlignment.ALIGN_CENTER);
+		chooseSurveyPanel.setCellHorizontalAlignment(chooseSurveySubmitButton, HasHorizontalAlignment.ALIGN_CENTER);
 		tabPanel.add(surveyPanel, "Surveys");
+		//tabPanel.addSelectionHandler(new SelectionHandler() {
+		//	public void onSelection(SelectionEven event) {
+		//		if(userType ==
+		//	}	
+		//}
 		
-		displaySurveyPanel.add(displaySurveySuggLabel);
-		displaySurveyPanel.add(displaySurveyQuestionLabel);
+		//displaySurveyPanel.setWidth("400px");
+		displaySurveyPanel.add(displaySurveySuggPanel);
+		displaySurveySuggPanel.add(displaySurveySuggLabel);
+		displaySurveySuggPanel.setHeight("75px");
+		displaySurveySuggPanel.setWidth("400px");
+		displaySurveySuggPanel.setCellHorizontalAlignment(displaySurveySuggLabel, HasHorizontalAlignment.ALIGN_CENTER);
+		displaySurveyPanel.add(displaySurveyQuestionPanel);
+		displaySurveyPanel.add(currentOptionPanel);
+		displaySurveyQuestionPanel.add(displaySurveyQuestionLabel);
+		displaySurveyQuestionPanel.setHeight("50px");
+		displaySurveyQuestionPanel.setCellHorizontalAlignment(displaySurveyQuestionLabel, HasHorizontalAlignment.ALIGN_CENTER);
+		displaySurveyOptionPanel.setHeight("40px");
 		displaySurveyPanel.add(displaySurveyOptionPanel);
+		displaySurveyPanel.setCellHorizontalAlignment(displaySurveySuggPanel, HasHorizontalAlignment.ALIGN_CENTER);
+		displaySurveyPanel.setCellHorizontalAlignment(displaySurveyQuestionLabel, HasHorizontalAlignment.ALIGN_CENTER);
+		displaySurveyPanel.setCellHorizontalAlignment(displaySurveyOptionPanel, HasHorizontalAlignment.ALIGN_CENTER);
+		displaySurveyPanel.setCellHorizontalAlignment(currentOptionPanel, HasHorizontalAlignment.ALIGN_CENTER);
+		displaySurveyPanel.setCellHorizontalAlignment(displaySurveyQuestionPanel, HasHorizontalAlignment.ALIGN_CENTER);
+		currentOptionPanel.add(currentOptionLabel);
+				
+		chooseChartPanel.add(chooseChartListBox);
+		chooseChartPanel.add(chooseChartSubmitButton);
+		chooseChartPanel.setWidth("400px");
+		chooseChartPanel.setCellHorizontalAlignment(chooseChartSubmitButton,HasHorizontalAlignment.ALIGN_CENTER);
+		chooseChartPanel.setCellHorizontalAlignment(chooseChartListBox,HasHorizontalAlignment.ALIGN_CENTER);
+		
 		
 		chartPanel.add(chartSuggPanel);
 		chartPanel.setWidth("500px");
 		chartPanel.setCellHorizontalAlignment(displayChartPanel,HasHorizontalAlignment.ALIGN_CENTER);
 		chartPanel.setCellHorizontalAlignment(chartSuggPanel,HasHorizontalAlignment.ALIGN_CENTER);
 		chartPanel.add(displayChartPanel);
+		//displayChartPanel.setWidth("1000px");
 		chartSuggPanel.add(chartSuggLabel);
 		chartSuggPanel.setHeight("75px");
 		chartSuggPanel.setCellHorizontalAlignment(chartSuggLabel,HasHorizontalAlignment.ALIGN_CENTER);
-				
 		
-		//RootPanel.get().add(loginPanel);
-		RootPanel.get().add(tabPanel);
+		displayUsersButtonPanel.setSpacing(7);
+		displayUsersButtonPanel.add(viewDivUsers);
+		displayUsersButtonPanel.add(viewDepUsers);
+		displayUsersPanel.add(displayUsersButtonPanel);
 		
-		//String url = "http://localhost:3000/pages/welcome";
-		//getRequest(url);
-		//getRequest("http://localhost:3000/users/index.json");
-		
-		//final DisplaySurvey data = chartDataArray.get(0);
-		//String sugg = data.getSuggestion();
-		//final AbstractDataTable chartData = createTable("hi");
-		getRequest("http://localhost:3000/sugg_surveys/chartData.json");
-		
-		
-		/*
-		//TEST CHART
-		Runnable onLoadCallback = new Runnable()
-		{
-			public void run()
-			{
-				Panel panel = RootPanel.get();
-				AreaChart chart =
-					new AreaChart(createTable(),createOptions());
-				panel.add(chart);
-			}
-		};
-		VisualizationUtils.loadVisualizationApi(
-				onLoadCallback, AreaChart.PACKAGE);
-		//TEST CHART
-		*/
+		tabPanel.add(displayUsersPanel, "Division Users");		
+		RootPanel.get().add(loginPanel);
+		//RootPanel.get().add(tabPanel);
+						
+					
 	}
 			
 	private String makePendingSurveyHTML()
 	{
-		pendingSurveyHTML = "<table border='1'><tr><th>PENDING SURVEY</th></tr><tr><th>Title:</th></tr>";
+		pendingSurveyHTML = "<table border='1'><tr><th>PENDING SURVEY</th></tr><tr><th>Title</th></tr>";
 		if (surveyTitle == null){
 				
 		}
@@ -394,7 +493,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			pendingSurveyHTML += "<tr><td>" + surveyTitle + "</td></tr>";	
 		}
 		
-		pendingSurveyHTML +=  "<tr><th>Suggestion:</th></tr><tr><td>" + surveySugg + "</td></tr><tr><th>Questions and Options:</th></tr>";
+		pendingSurveyHTML +=  "<tr><th>Suggestion</th></tr><tr><td>" + surveySugg + "</td></tr><tr><th>Questions and Options</th></tr>";
 		
 		for (int i=0;i<surveyArray.length;i++) {
 			if (surveyArray[i][0] == null) {
@@ -408,14 +507,25 @@ public class Mainpage implements EntryPoint, ClickHandler
 					//DOES NOTHING
 				}
 				else {
-					pendingSurveyHTML += "<td>" + surveyArray[i][j] + "</td>";
+					if (j == 1) {
+						//pendingSurveyHTML += "<td>" + surveyArray[i][j] + "</td>";
+						pendingSurveyHTML += "<td>" + surveyArray[i][j];
+					}
+					else {
+						pendingSurveyHTML += " &nbsp<b>|</b>&nbsp  " + surveyArray[i][j];
+					}
 			    }				
 			}
+			pendingSurveyHTML += "</td>";
 			pendingSurveyHTML += "</tr>";	
 		}
 		return pendingSurveyHTML;
 	}
 	
+	//public void onSelection(SelectionEvent event)
+	//{
+	
+	//}
 	
 	
 	public void onClick(ClickEvent event)
@@ -437,7 +547,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 		else if (source == newUserButton) {
 			adminPanel.clear();
 			adminPanel.add(adminButtonPanel);
-			adminPanel.add(newUserPanel);
+			//adminPanel.add(newUserPanel);
+			adminPanel.add(newUserBoxPanel);
 			//adminPanel.add(displayUsers);
 			//getRequest(displayUsersURL);
 			users.clear();
@@ -500,6 +611,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		else if (source == createSurveyButton) {
 			surveyPanel.clear();
 			surveyPanel.add(surveyButtonPanel);
+			chooseSuggArrayIndex = 0;
 			getRequest("http://localhost:3000/user_suggestions/divChairView.json");
 			
 			surveyPanel.add(surveySuggPanel);
@@ -513,6 +625,13 @@ public class Mainpage implements EntryPoint, ClickHandler
 				chooseSuggArrayIndex++;
 			}
 			ChooseSugg sugg = chooseSuggArray.get(chooseSuggArrayIndex);
+			String suggestion = sugg.getSuggestion();
+			while(suggestion.equals("")) {
+				chooseSuggArrayIndex++;
+				sugg = chooseSuggArray.get(chooseSuggArrayIndex);
+				suggestion = sugg.getSuggestion();
+			}
+			sugg = chooseSuggArray.get(chooseSuggArrayIndex);
 			surveySuggLabel.setText(sugg.getSuggestion());
 			surveySuggIDHidden.setValue(sugg.getSuggestionID());
 			//tempArray = chooseSuggArray.get(chooseSuggArrayIndex);	
@@ -523,6 +642,13 @@ public class Mainpage implements EntryPoint, ClickHandler
 				chooseSuggArrayIndex--;
 			}
 			ChooseSugg sugg = chooseSuggArray.get(chooseSuggArrayIndex);
+			String suggestion = sugg.getSuggestion();
+			while(suggestion.equals("")) {
+				chooseSuggArrayIndex--;
+				sugg = chooseSuggArray.get(chooseSuggArrayIndex);
+				suggestion = sugg.getSuggestion();
+			}
+			sugg = chooseSuggArray.get(chooseSuggArrayIndex);
 			surveySuggLabel.setText(sugg.getSuggestion());
 			surveySuggIDHidden.setValue(sugg.getSuggestionID());
 		}
@@ -621,7 +747,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveyPanel.add(surveyButtonPanel);
 			pendingSurvey.setHTML(makePendingSurveyHTML());
 			surveyPanel.add(surveyCreated);
-			Window.alert(xmlSurvey);
+			//Window.alert(xmlSurvey);
 			String url = "http://localhost:3000/sugg_surveys/createSurvey";
 			postRequest(url, encData);
 		}
@@ -648,18 +774,20 @@ public class Mainpage implements EntryPoint, ClickHandler
 				displaySurveyPanel.remove(displaySurveySubmitButton);
 				displaySurveyQuestionLabel.setText("");
 				chosenOptionLabel.setText("");
+				currentOptionLabel.setHTML("<b>Current Choice: </b>");
 				displaySurveyOptionPanel.add(stronglyAgreeButton);
 				displaySurveyOptionPanel.add(agreeButton);
 				displaySurveyOptionPanel.add(neutralButton);
 				displaySurveyOptionPanel.add(disagreeButton);
 				displaySurveyOptionPanel.add(stronglyDisagreeButton);
 				displaySurveyPanel.add(displaySurveyNextButton);
+				displaySurveyPanel.setCellHorizontalAlignment(displaySurveyNextButton, HasHorizontalAlignment.ALIGN_CENTER);
 				displaySurveyArrayIndex = 0;
 				prevSurvIndex = 0;
 				surveyResultArrayIndex = 0;
 				index = chooseSurveyListBox.getSelectedIndex();
 				String value = chooseSurveyListBox.getValue(index);
-				Window.alert(value);
+				//Window.alert(value);
 				surveyPanel.add(displaySurveyPanel);
 				getRequest("http://localhost:3000/sugg_surveys/takeSurvey/"+value+".json");
 				//String encData = URL.encode("survey_id")+"=";
@@ -670,25 +798,32 @@ public class Mainpage implements EntryPoint, ClickHandler
 		
 		else if (source == stronglyAgreeButton) {
 			initialChosenOption = "strongly_agree";
+			currentOptionLabel.setHTML("<b>Current Choice: </b>Strongly Agree");
 		}
 		else if (source == agreeButton) {
 			initialChosenOption = "agree";
+			currentOptionLabel.setHTML("<b>Current Choice: </b>Agree"); 
 		}
 		else if (source == neutralButton) {
 			initialChosenOption = "neutral";
+			currentOptionLabel.setHTML("<b>Current Choice: </b>Neutral");
 		}
 		else if (source == disagreeButton) {
 			initialChosenOption = "disagree";
+			currentOptionLabel.setHTML("<b>Current Choice: </b>Disagree");
 		}
 		else if (source == stronglyDisagreeButton) {
 			initialChosenOption = "strongly_disagree";
-			Window.alert(initialChosenOption);
+			currentOptionLabel.setHTML("<b>Current Choice: </b>Strongly Disagree");
 		}
 		else if (source == noQuestionSubmitButton) {
 			if (initialChosenOption.equals("")) {
 				Window.alert("Select An Option First");
 			}
 			else {
+				Window.alert("Survey Has Been Submitted");
+				surveyPanel.clear();
+				surveyPanel.add(surveyButtonPanel);
 				String encData = URL.encode("survey_id")+"=";
 				encData += URL.encode(takenSurveyID)+"&";
 				encData += URL.encode("initial_option")+"=";
@@ -705,6 +840,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			else {
 				displaySurveyOptionPanel.clear();
 				DisplaySurvey survey = null;
+				currentOptionLabel.setHTML("<b>Current Choice: </b>");
 				survey = displaySurveyArray.get(displaySurveyArrayIndex);
 				DisplaySurvey prevSurv = null;
 				if (!chosenOption.equals("")) {
@@ -722,7 +858,8 @@ public class Mainpage implements EntryPoint, ClickHandler
 						displaySurveyOptionPanel.add(new Button(option,new ClickHandler() {
 							public void onClick(ClickEvent event) {
 								chosenOptionLabel.setText(option);
-								//Window.alert(chosenOptionLabel.getText());
+								currentOptionLabel.setHTML("<b>Current Choice: </b>"+option);
+							//Window.alert(chosenOptionLabel.getText());
 								
 							}
 						}));
@@ -730,7 +867,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 					}
 				}
 				surveyResultArray[surveyResultArrayIndex][1] = chosenOptionLabel.getText(); 
-				Window.alert(""+surveyResultArray[surveyResultArrayIndex][0]+","+surveyResultArray[surveyResultArrayIndex][1]);
+				//Window.alert(""+surveyResultArray[surveyResultArrayIndex][0]+","+surveyResultArray[surveyResultArrayIndex][1]);
 				if (!chosenOption.equals("")) {
 					surveyResultArrayIndex++;
 					prevSurvIndex++;
@@ -739,6 +876,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 				if (displaySurveyArrayIndex >= displaySurveyArray.length()) {
 					displaySurveyPanel.remove(displaySurveyNextButton);
 					displaySurveyPanel.add(displaySurveySubmitButton);
+					displaySurveyPanel.setCellHorizontalAlignment(displaySurveySubmitButton, HasHorizontalAlignment.ALIGN_CENTER);
 				}
 				chosenOptionLabel.setText("default");
 			}
@@ -753,14 +891,14 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveyResultArray[prevSurvIndex][0] = prevSurv.getQuestionID();
 			
 			//surveyResultArray[surveyResultArrayIndex][0] = prevSurv.getQuestionID();
-				
+			currentOptionLabel.setHTML("<h4>Your Choice: ");	
 			//}
 			//prevSurv = displaySurveyArray.get(prevSurvIndex);
 			//surveyResultArray[prevSurvIndex][0] = prevSurv.getQuestionID();
 			surveyResultArray[prevSurvIndex][1] = chosenOptionLabel.getText(); 
 			surveyPanel.clear();
 			surveyPanel.add(surveyButtonPanel);
-			Window.alert("Survey Submitted");
+			Window.alert("Survey Has Been Submitted");
 			String xmlSurvey = "\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><arrays type=\"array\">"; 
 				for (int i=0;i<surveyResultArray.length;i++) {
 					if (surveyResultArray[i][0] != null) {
@@ -771,7 +909,6 @@ public class Mainpage implements EntryPoint, ClickHandler
 					
 				}
 				xmlSurvey += "</arrays>";
-				Window.alert(xmlSurvey);
 			String encData = URL.encode("survey_id")+"="+
 				URL.encode(takenSurveyID)+"&";
 			encData += URL.encode("initial_option")+"="+
@@ -781,56 +918,150 @@ public class Mainpage implements EntryPoint, ClickHandler
 			postRequest("http://localhost:3000/sugg_surveys/surveyResult",encData);
 		}
 		
+		else if(source == chooseChartSubmitButton) {
+			int index = chooseChartListBox.getSelectedIndex();
+			String id = chooseChartListBox.getValue(index);
+			surveyPanel.clear();
+			
+			surveyPanel.add(surveyButtonPanel);
+			surveyPanel.add(chartPanel);
+			getRequest("http://localhost:3000/sugg_surveys/chartData/"+id+".json");
+			
+			
+		}
+		
 		//START CHARTS
 		else if(source == surveyChartsButton) {
 			surveyPanel.clear();
 			surveyPanel.add(surveyButtonPanel);
 			displayChartPanel.clear();
-			surveyPanel.add(chartPanel);
-			
-			getRequest("http://localhost:3000/sugg_surveys/chartData.json");
-			Window.alert("Results Are Ready");
-			//DisplaySurvey chartData = null;
-			//chartData = chartDataArray.get(0);
-			//final String chartTitle = chartData.getQuestion();
-						
-			Runnable onLoadCallback = new Runnable()
-			{
-				public void run()
-				{
-					
-					AreaChart initialChart = new AreaChart(initialCreateTable(),initialCreateOptions());
-					//chartPanel.add(initialChart);
-					displayChartPanel.add(initialChart);
-					
-					DisplaySurvey chartData = chartDataArray.get(0);
-					String chartTitle = chartData.getQuestion();
-					//Window.alert(chartTitle);
-					if (chartTitle != null)
-						for (int i = 0;i < chartDataArray.length();i++) {
-							DisplaySurvey cData = chartDataArray.get(i);
-							String question = cData.getQuestion();
-							if (i == 0) {
-								displayChartPanel.add(new AreaChart(createTable(i),createOptions(chartTitle)));
-							}
-							if (!question.equals(chartTitle)) {
-								chartTitle = question;
-								displayChartPanel.add(new AreaChart(createTable(i),createOptions(chartTitle)));
-							}				
-										
-					}
-					//for (int i = 0;i < chartDataArray.length();i++) {
-					//	chartDataArray.get(i) = "";
-					//}
-					
-									
-				}
-			};
-			VisualizationUtils.loadVisualizationApi(onLoadCallback, AreaChart.PACKAGE);
-			
-								
+			chooseChartListBox.clear();
+			surveyPanel.add(chooseChartPanel);
+			getRequest("http://localhost:3000/sugg_surveys/allSurveys.json");
+			//Window.alert("Results Are Ready");
 		}		
 		//END CHARTS
+		
+		else if(source == makeSuggButton) {
+			suggPanel.clear();
+			newSuggArea.setText("");
+			suggPanel.add(suggButtonPanel);
+			suggPanel.add(newSuggPanel);
+		}
+		
+		else if(source == newSuggSubmitButton) {
+			String sugg = newSuggArea.getText();
+			if (sugg.equals("")) {
+				Window.alert("Enter A Suggestion First");
+			}
+			else {
+				suggPanel.clear();
+				newSuggArea.setText("");
+				suggPanel.add(suggButtonPanel);
+				String encData = URL.encode("suggestion")+"="+
+					URL.encode(sugg);
+				postRequest("http://localhost:3000/user_suggestions/create", encData);
+			}
+		}
+		
+		else if(source == editOwnSuggButton) {
+			suggPanel.clear();
+			editOwnSuggPanel.clear();
+			editOwnSuggListBox.clear();
+			suggPanel.add(suggButtonPanel);
+			suggPanel.add(editOwnSuggPanel);
+			editOwnSuggPanel.add(editOwnSuggListBox);
+			editOwnSuggPanel.add(chooseEditSuggButton);
+			editOwnSuggPanel.setWidth("400px");
+			editOwnSuggPanel.setCellHorizontalAlignment(editOwnSuggListBox, HasHorizontalAlignment.ALIGN_CENTER);
+			editOwnSuggPanel.setCellHorizontalAlignment(chooseEditSuggButton, HasHorizontalAlignment.ALIGN_CENTER);
+			getRequest("http://localhost:3000/user_suggestions/chooseSuggestion/"+"editOwn"+".json");
+			
+		}
+		
+		else if (source == chooseEditSuggButton) {
+			int index = editOwnSuggListBox.getSelectedIndex();
+			currentSuggText = editOwnSuggListBox.getItemText(index);
+			currentSuggID = editOwnSuggListBox.getValue(index);
+			editOwnSuggPanel.clear();
+			editOwnSuggPanel.add(editOwnSuggArea);
+			editOwnSuggPanel.add(editOwnSuggSubmitButton);
+			editOwnSuggPanel.setCellHorizontalAlignment(editOwnSuggArea, HasHorizontalAlignment.ALIGN_CENTER);
+			editOwnSuggPanel.setCellHorizontalAlignment(editOwnSuggSubmitButton, HasHorizontalAlignment.ALIGN_CENTER);
+			editOwnSuggArea.setText(currentSuggText);
+		}
+		
+		else if (source == editOwnSuggSubmitButton) {
+			String newSugg = editOwnSuggArea.getText();
+			String suggID = currentSuggID;
+			editOwnSuggArea.setText("");
+			currentSuggText = "";
+			currentSuggID = "";
+			suggPanel.clear();
+			suggPanel.add(suggButtonPanel);
+			String encData = URL.encode("suggestionid")+"="+
+				URL.encode(suggID)+"&";
+			encData += URL.encode("suggestion")+"="+
+				URL.encode(newSugg);
+			postRequest("http://localhost:3000/suggestions/update", encData);
+		}
+		
+		else if (source == editDivSuggButton) {
+			suggPanel.clear();
+			editOwnSuggPanel.clear();
+			editOwnSuggListBox.clear();
+			suggPanel.add(suggButtonPanel);
+			suggPanel.add(editOwnSuggPanel);
+			editOwnSuggPanel.add(editOwnSuggListBox);
+			editOwnSuggPanel.add(chooseEditSuggButton);
+			editOwnSuggPanel.setWidth("400px");
+			editOwnSuggPanel.setCellHorizontalAlignment(editOwnSuggListBox, HasHorizontalAlignment.ALIGN_CENTER);
+			editOwnSuggPanel.setCellHorizontalAlignment(chooseEditSuggButton, HasHorizontalAlignment.ALIGN_CENTER);
+			getRequest("http://localhost:3000/user_suggestions/chooseSuggestion/"+"editDiv"+".json");	
+		}
+		
+		else if (source == viewAllSuggButton) {
+			suggPanel.clear();
+			allSuggs.clear();
+			viewAllSuggPanel.clear();
+			suggsCellTable = new CellTable<AllSuggs>(allSuggs.size());
+			suggsCellTablePager.setDisplay(suggsCellTable);
+			viewAllSuggPanel.add(suggsCellTablePager);
+			viewAllSuggPanel.add(suggsCellTable);
+			suggPanel.add(suggButtonPanel);
+			suggPanel.add(viewAllSuggPanel);
+			getRequest("http://localhost:3000/user_suggestions/allSuggestions.json");
+		}
+		
+		else if (source == viewDivUsers) {
+			displayUsersPanel.clear();
+			displayUsersPanel.add(displayUsersButtonPanel);
+			users.clear();
+			table = new CellTable<UserInfo>(users.size());
+			usersCellTablePager.setDisplay(table);
+			displayUsersPanel.add(usersCellTablePager);
+			displayUsersPanel.add(table);
+			getRequest("http://localhost:3000/users/index/"+"div"+".json");
+		}
+		
+		else if (source == viewDepUsers) {
+			displayUsersPanel.clear();
+			displayUsersPanel.add(displayUsersButtonPanel);
+			users.clear();
+			table = new CellTable<UserInfo>(users.size());
+			usersCellTablePager.setDisplay(table);
+			displayUsersPanel.add(usersCellTablePager);
+			displayUsersPanel.add(table);
+			getRequest("http://localhost:3000/users/index/"+"dep"+".json");	
+		}
+		
+		else if (source == divSuggsChartButton) {
+			suggPanel.clear();
+			suggPanel.add(suggButtonPanel);
+			divSuggsChartPanel.clear();
+			suggPanel.add(divSuggsChartPanel);
+			getRequest("http://localhost:3000/user_suggestions/numSuggsByDiv.json");
+		}
 	}
 	
 	private Options createOptions(String title)
@@ -838,6 +1069,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		Options options = Options.create();
 		options.setWidth(400);
 		options.setHeight(240);
+		options.set3D(true);
 		options.setTitle(title);
 		return options;
 	}
@@ -868,28 +1100,6 @@ public class Mainpage implements EntryPoint, ClickHandler
 			}	
 		}
 		return initialData;	
-		
-		
-		
-		/*
-		initialData.addRows(5);
-		initialData.setValue(0,0,"Strongly Agree");
-		initialData.setValue(0,1,data.getStronglyAgree());
-		//initialData.setValue(0,1,2);
-		initialData.setValue(1,0,"Agree");
-		initialData.setValue(1,1,data.getAgree());
-		//initialData.setValue(1,1,3);
-		initialData.setValue(2,0,"Neutral");
-		initialData.setValue(2,1,data.getNeutral());
-		//initialData.setValue(2,1,4);
-		initialData.setValue(3,0,"Disagree");
-		initialData.setValue(3,1,data.getDisagree());
-		//initialData.setValue(3,1,5);
-		initialData.setValue(4,0,"Strongly Disagree");
-		initialData.setValue(4,1,data.getStronglyDisagree());
-		//initialData.setValue(4,1,3);
-		
-		*/
 	}
 	
 	private Options initialCreateOptions()
@@ -897,6 +1107,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 		Options initialOptions = Options.create();
 		initialOptions.setWidth(400);
 		initialOptions.setHeight(240);
+		initialOptions.set3D(true);
 		initialOptions.setTitle("General Rating of the Suggestion");
 		return initialOptions;
 	}
@@ -914,20 +1125,56 @@ public class Mainpage implements EntryPoint, ClickHandler
 		initialData.addRows(5);
 		initialData.setValue(0,0,"Strongly Agree");
 		initialData.setValue(0,1,data.getStronglyAgree());
-		//initialData.setValue(0,1,2);
 		initialData.setValue(1,0,"Agree");
 		initialData.setValue(1,1,data.getAgree());
-		//initialData.setValue(1,1,3);
 		initialData.setValue(2,0,"Neutral");
 		initialData.setValue(2,1,data.getNeutral());
-		//initialData.setValue(2,1,4);
 		initialData.setValue(3,0,"Disagree");
 		initialData.setValue(3,1,data.getDisagree());
-		//initialData.setValue(3,1,5);
 		initialData.setValue(4,0,"Strongly Disagree");
 		initialData.setValue(4,1,data.getStronglyDisagree());
-		//initialData.setValue(4,1,3);
 		return initialData;	
+	}
+	
+	private Options createDivSuggsOptions()
+	{
+		Options options = Options.create();
+		options.setWidth(400);
+		options.setHeight(240);
+		options.set3D(true);
+		options.setTitle("Number Of Suggestions By Division");
+		return options;	
+	}
+	
+	private AbstractDataTable createDivSuggsTable() 
+	{
+		DataTable chartData = DataTable.create();
+		chartData.addColumn(ColumnType.STRING, "Division");
+		chartData.addColumn(ColumnType.NUMBER, "Number of Suggestions");
+		ChooseSugg data = null;
+		data = chooseEditSuggArray.get(0);
+		String division = data.getDiv();
+		int row = 0;
+		int suggCount = 0;
+		for (int i = 0; i < chooseEditSuggArray.length(); i++) {
+			data = chooseEditSuggArray.get(i);
+			String div = data.getDiv();
+			if (div.equals(division)) {
+				suggCount++;	
+			}
+			else {
+				chartData.addRow();
+				chartData.setValue(row, 0, division);
+				chartData.setValue(row, 1, suggCount);
+				row++;
+				suggCount = 1;
+				division = div;	
+			}	
+		}
+		chartData.addRow();
+		chartData.setValue(row, 0, division);
+		chartData.setValue(row, 1, suggCount);
+		return chartData;
 	}
 			 
 	private void getRequest(String url)
@@ -945,13 +1192,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 				public void onResponseReceived(final Request request,
 					final Response response)
 				{
-					
-					//trialArea.setText(resp);
-					//loginPanel.add(trialLabel);
-					//textarea.setText(response.getText());
-					//int length = chooseSuggArray.length(); //TO CHECK LENGTH OF ARRAY
-					
-					
+										
 					String resp = response.getText();
 					//Window.alert(resp);
 					
@@ -963,26 +1204,84 @@ public class Mainpage implements EntryPoint, ClickHandler
 				        surveySuggIDHidden.setValue(sugg.getSuggestionID());
 					}
 					
+					else if (resp.contains("json_num_of_suggs_by_div")) {
+						String newResp = resp.replace(",\"json_num_of_suggs_by_div\"]", "]");
+						chooseEditSuggArray = getSurveySuggArray(newResp);
+						Runnable onLoadCallback = new Runnable()
+						{
+							public void run()
+							{
+								ColumnChart divSuggsChart = new ColumnChart(createDivSuggsTable(),createDivSuggsOptions());
+								divSuggsChartPanel.add(divSuggsChart);
+							}
+						};
+						VisualizationUtils.loadVisualizationApi(onLoadCallback, AreaChart.PACKAGE);
+					}
+															
+					else if (resp.contains("json_choose_sugg_edit")) {
+						String newResp = resp.replace(",\"json_choose_sugg_edit\"]", "]");
+						chooseEditSuggArray = getSurveySuggArray(newResp);
+						for (int i = 0; i < chooseEditSuggArray.length(); i++) {
+							ChooseSugg sugg = chooseEditSuggArray.get(i);
+							String suggid = sugg.getSuggestionID();
+							String suggestion = sugg.getSuggestion();
+							editOwnSuggListBox.addItem(suggestion, suggid); 
+						}
+					}
+					
+					else if(resp.contains("json_all_surveys")) {
+						String newResp = resp.replace(",\"json_all_surveys\"]", "]");
+						chooseChartDataArray = getChooseSurveyArray(newResp);
+						for (int i = 0; i < chooseChartDataArray.length(); i++) {
+							ChooseSurvey survey = chooseChartDataArray.get(i);
+							String id = survey.getSurveyID();
+							String title = survey.getTitle();
+							chooseChartListBox.addItem(title, id);
+						}
+					}
+					
 					else if(resp.contains("json_chart_data")) {
 						String newResp = resp.replace(",\"json_chart_data\"]", "]");
+						//Window.alert(newResp);
 						chartDataArray = getDisplaySurveyArray(newResp);
 						DisplaySurvey chartData = chartDataArray.get(0);
 						//Window.alert(newResp);
 						chartSuggLabel.setText(chartData.getSuggestion());					
-						/*
 						Runnable onLoadCallback = new Runnable()
 						{
 							public void run()
 							{
 								
-								AreaChart initialChart = new AreaChart(createTable(),createOptions());
-								chartPanel.add(initialChart);
+								//AreaChart initialChart = new AreaChart(initialCreateTable(),initialCreateOptions());
+								ColumnChart initialChart = new ColumnChart(initialCreateTable(),initialCreateOptions());
+								//chartPanel.add(initialChart);
+								displayChartPanel.add(initialChart);
 								
+								DisplaySurvey chartData = chartDataArray.get(0);
+								String chartTitle = chartData.getQuestion();
+								//Window.alert(chartTitle);
+								if (chartTitle != null) {
+									for (int i = 0;i < chartDataArray.length();i++) {
+										DisplaySurvey cData = chartDataArray.get(i);
+										String question = cData.getQuestion();
+										if (i == 0) {
+											//displayChartPanel.add(new AreaChart(createTable(i),createOptions(chartTitle)));
+											displayChartPanel.add(new ColumnChart(createTable(i),createOptions(chartTitle)));
+										}
+										if (!question.equals(chartTitle)) {
+											chartTitle = question;
+											//displayChartPanel.add(new AreaChart(createTable(i),createOptions(chartTitle)));
+											displayChartPanel.add(new ColumnChart(createTable(i),createOptions(chartTitle)));
+										}
+									}				
+													
+								}
+								//for (int i = 0;i < chartDataArray.length();i++) {
+								//	chartDataArray.get(i) = "";
+								//}
 							}
 						};
-						
 						VisualizationUtils.loadVisualizationApi(onLoadCallback, AreaChart.PACKAGE);
-						*/
 						
 					}
 					
@@ -991,6 +1290,13 @@ public class Mainpage implements EntryPoint, ClickHandler
 						String newResp = resp.replace(",\"json_user_sugg_by_div\"]", "]");
 						chooseSuggArray = getSurveySuggArray(newResp);
 						ChooseSugg sugg = chooseSuggArray.get(chooseSuggArrayIndex);
+						String suggestion = sugg.getSuggestion();
+						while(suggestion.equals("")) {
+							chooseSuggArrayIndex++;
+							sugg = chooseSuggArray.get(chooseSuggArrayIndex);
+							suggestion = sugg.getSuggestion();
+						}
+						sugg = chooseSuggArray.get(chooseSuggArrayIndex);
 				        surveySuggLabel.setText(sugg.getSuggestion());
 				        surveySuggIDHidden.setValue(sugg.getSuggestionID());	
 					}
@@ -1017,6 +1323,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 							displaySurveyPanel.remove(displaySurveyNextButton);
 							//displaySurveyPanel.add(displaySurveySubmitButton);
 							displaySurveyPanel.add(noQuestionSubmitButton);
+							displaySurveyPanel.setCellHorizontalAlignment(noQuestionSubmitButton, HasHorizontalAlignment.ALIGN_CENTER);
 						}
 						String suggText = survey.getSuggestion();
 						displaySurveySuggLabel.setText(suggText);
@@ -1030,6 +1337,78 @@ public class Mainpage implements EntryPoint, ClickHandler
 						//}	
 						
 					}
+					
+					else if (resp.contains("json_all_suggs_for_celltable")) {
+						String newResp = resp.replace(",\"json_all_suggs_for_celltable\"]", "]");
+						//Window.alert("hi");
+						allSuggArray = getSurveySuggArray(newResp);
+						ChooseSugg sugg = null;
+						for (int i = 0; i < allSuggArray.length(); i++) {
+							sugg = allSuggArray.get(i);
+							allSuggs.add(new AllSuggs(sugg.getSuggestion(),sugg.getDep(),
+								sugg.getDiv(),sugg.getCreatedAt(),sugg.getUpdatedAt()));
+						}
+						TextColumn<AllSuggs> suggColumn = new TextColumn<AllSuggs>()
+						{
+							@Override
+							public String getValue(AllSuggs suggs)
+							{
+								return suggs.suggestion;
+							} 
+						};
+						TextColumn<AllSuggs> deptColumn = new TextColumn<AllSuggs>()
+						{
+							@Override
+							public String getValue(AllSuggs suggs)
+							{
+								return suggs.department;
+							} 
+						};
+						
+						TextColumn<AllSuggs> divColumn = new TextColumn<AllSuggs>()
+						{
+							@Override
+							public String getValue(AllSuggs suggs)
+							{
+								return suggs.division;
+							} 
+						};	
+						TextColumn<AllSuggs> createdAtColumn = new TextColumn<AllSuggs>()
+						{
+							@Override
+							public String getValue(AllSuggs suggs)
+							{
+								return suggs.createdAt;
+							} 
+						};	
+						TextColumn<AllSuggs> updatedAtColumn = new TextColumn<AllSuggs>()
+						{
+							@Override
+							public String getValue(AllSuggs suggs)
+							{
+								return suggs.updatedAt;
+							} 
+						};
+						suggsCellTable.setPageSize(5);
+						suggsCellTable.addColumn(suggColumn, "Suggestion");
+						suggsCellTable.addColumn(deptColumn, "Department");
+						suggsCellTable.addColumn(divColumn, "Division");
+						suggsCellTable.addColumn(createdAtColumn, "Created At");
+						suggsCellTable.addColumn(updatedAtColumn, "Updated At");
+						AsyncDataProvider<AllSuggs> suggProvider = new AsyncDataProvider<AllSuggs>() {
+						      @Override
+						      protected void onRangeChanged(HasData<AllSuggs> display) {
+						        int start = display.getVisibleRange().getStart();
+						        int end = start + display.getVisibleRange().getLength();
+						        end = end >= allSuggs.size() ? allSuggs.size() : end;
+						        List<AllSuggs> sub = allSuggs.subList(start, end);
+						        updateRowData(start, sub);
+						      }
+						    };
+						suggProvider.addDataDisplay(suggsCellTable);
+						suggProvider.updateRowCount(allSuggs.size(), true);	
+						viewAllSuggPanel.add(suggsCellTable);								
+					}
 									
 					else if (resp.contains("#display_users_celltable")) {
 						String newResp = resp.replace(",\"#display_users_celltable\"]", "]");
@@ -1041,7 +1420,6 @@ public class Mainpage implements EntryPoint, ClickHandler
 							user = jsonData.get(i);
 							users.add(new UserInfo(user.getDepartment(), user.getDivision(), user.getFirstName(), user.getLastName()));
 						}
-						//size.setText("size is: " + users.size());  Used to check size of ArrayList
 						TextColumn<UserInfo> depColumn = new TextColumn<UserInfo>()
 						{
 							@Override
@@ -1093,7 +1471,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 						provider.updateRowCount(users.size(), true);
 						//table.setRowCount(users.size(),true);
 						//table.setRowData(0,users);
-						adminPanel.add(table);
+						//adminPanel.add(table);
 						
 					}
 					
@@ -1132,22 +1510,40 @@ public class Mainpage implements EntryPoint, ClickHandler
 					
 					String resp = response.getText().trim();
 					//Window.alert(resp);
-					//int id = Integer.parseInt(resp);
-					if (resp.contains("logged_in_yes")) {
-						RootPanel.get().clear();
-						RootPanel.get().add(tabPanel);
-					}
-					else if (resp.contains("logged_in_no")) {
+					
+					if (resp.contains("logged_in_no")) {
 						loginUsernameBox.setText("");
 						loginPasswordBox.setText("");
 					}
-									
+					else if (resp.contains("user_type_is_divChair")) {
+						String newResp = resp.replace("user_type_is_", "");
+						RootPanel.get().clear();
+						RootPanel.get().add(tabPanel);
+						userType = newResp;
+						//Window.alert(userType);
+						tabPanel.remove(adminPanel);
+						
+					}
+					else if (resp.contains("user_type_is_admin")) {
+						String newResp = resp.replace("user_type_is_","");
+						userType = newResp;
+						RootPanel.get().clear();
+						RootPanel.get().add(tabPanel);
+						tabPanel.clear();
+						tabPanel.add(adminPanel, "Admin");
+										
+					}
 					
-					//displayUsers.setUrl(displayUsersURL);
-					//String url1 = "http://localhost:3000/pages/welcome";
-					//getRequest(url1);
-					//getRequest(displayUsersURL);
-				
+					else if (resp.contains("user_type_is_normal")) {
+						String newResp = resp.replace("user_type_is_","");
+						userType = newResp;	
+						RootPanel.get().clear();
+						RootPanel.get().add(tabPanel);
+						tabPanel.remove(adminPanel);
+						suggButtonPanel.remove(editDivSuggButton);
+						surveyButtonPanel.remove(createSurveyButton);
+					}
+								
 				}
 			});
 		}
