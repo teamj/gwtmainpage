@@ -153,6 +153,7 @@ public class Mainpage implements EntryPoint, ClickHandler
     //CellPanel suggButtonPanel;
     Button makeSuggButton = new Button("Make A Suggestion");
     TextArea newSuggArea = new TextArea();
+    Label textAreaLabel = new Label("Enter Suggestion");
     
     VerticalPanel editOwnSuggPanel = new VerticalPanel();
     Button editOwnSuggButton = new Button("Edit Your Suggestion");
@@ -164,6 +165,7 @@ public class Mainpage implements EntryPoint, ClickHandler
     String currentSuggText = "";
     String currentSuggID = "";
     Button editDivSuggButton = new Button("Edit Division Suggestions");
+    Label editTextAreaLabel = new Label("Edit Suggestion");
     
     VerticalPanel viewAllSuggPanel = new VerticalPanel();
     Button viewAllSuggButton = new Button("View Division Suggestions");
@@ -178,7 +180,7 @@ public class Mainpage implements EntryPoint, ClickHandler
     Button createSurveyButton = new Button("Create A Survey");
     Button takeSurveyButton = new Button("Take A Survey");
     VerticalPanel surveySuggPanel = new VerticalPanel();
-    Label surveySuggLabel = new Label("Sample Suggestion");
+    Label surveySuggLabel = new Label("No Available Suggestions");
     VerticalPanel suggContainer = new VerticalPanel();
     HorizontalPanel surveySuggButtons = new HorizontalPanel();
     Button chooseSuggNextButton = new Button("Next");
@@ -383,12 +385,13 @@ public class Mainpage implements EntryPoint, ClickHandler
 		suggButtonPanel.add(viewAllSuggButton);
 		suggButtonPanel.add(divSuggsChartButton);
 		suggPanel.add(suggButtonBoxPanel);
+		newSuggPanel.add(textAreaLabel);
 		newSuggPanel.add(newSuggArea);
 		newSuggPanel.add(newSuggSubmitButton);
 		newSuggPanel.setWidth("400px");
 		newSuggPanel.setCellHorizontalAlignment(newSuggArea,HasHorizontalAlignment.ALIGN_CENTER);
 		newSuggPanel.setCellHorizontalAlignment(newSuggSubmitButton,HasHorizontalAlignment.ALIGN_CENTER);
-		
+		newSuggPanel.setCellHorizontalAlignment(textAreaLabel,HasHorizontalAlignment.ALIGN_CENTER);
 		viewAllSuggPanel.add(suggsCellTablePager);
 		viewAllSuggPanel.add(suggsCellTable);
 		
@@ -645,9 +648,10 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveyPanel.clear();
 			surveyPanel.add(surveyButtonBoxPanel);
 			chooseSuggArrayIndex = 0;
+			surveyPanel.add(surveySuggPanel);
 			getRequest("http://localhost:3000/user_suggestions/divChairView.json");
 			
-			surveyPanel.add(surveySuggPanel);
+			
 			//surveyPanel.add(newSurveyPanel);
 			//surveyPanel.add(pendingSurvey);
 			
@@ -771,6 +775,7 @@ public class Mainpage implements EntryPoint, ClickHandler
 			surveySugg = null;
 			surveySuggID = null;
 			surveyTitle = null;
+			surveySuggLabel.setText("No Available Suggestions");
 			chooseSuggArrayIndex = 0;
 			surveyArrayIndex1 = 0;
 			surveyArrayIndex2 = 0;
@@ -1023,10 +1028,12 @@ public class Mainpage implements EntryPoint, ClickHandler
 			currentSuggText = editOwnSuggListBox.getItemText(index);
 			currentSuggID = editOwnSuggListBox.getValue(index);
 			editOwnSuggPanel.clear();
+			editOwnSuggPanel.add(editTextAreaLabel);
 			editOwnSuggPanel.add(editOwnSuggArea);
 			editOwnSuggPanel.add(editOwnSuggSubmitButton);
 			editOwnSuggPanel.setCellHorizontalAlignment(editOwnSuggArea, HasHorizontalAlignment.ALIGN_CENTER);
 			editOwnSuggPanel.setCellHorizontalAlignment(editOwnSuggSubmitButton, HasHorizontalAlignment.ALIGN_CENTER);
+			editOwnSuggPanel.setCellHorizontalAlignment(editTextAreaLabel, HasHorizontalAlignment.ALIGN_CENTER);
 			editOwnSuggArea.setText(currentSuggText);
 		}
 		
@@ -1335,16 +1342,19 @@ public class Mainpage implements EntryPoint, ClickHandler
 					
 					else if (resp.contains("json_user_sugg_by_div")) {
 						String newResp = resp.replace(",\"json_user_sugg_by_div\"]", "]");
+						Window.alert(newResp);
 						chooseSuggArray = getSurveySuggArray(newResp);
 						ChooseSugg sugg = chooseSuggArray.get(chooseSuggArrayIndex);
 						String suggestion = sugg.getSuggestion();
+						
 						while(suggestion.equals("")) {
 							chooseSuggArrayIndex++;
 							sugg = chooseSuggArray.get(chooseSuggArrayIndex);
 							suggestion = sugg.getSuggestion();
 						}
-						sugg = chooseSuggArray.get(chooseSuggArrayIndex);
-				        surveySuggLabel.setText(sugg.getSuggestion());
+						//sugg = chooseSuggArray.get(chooseSuggArrayIndex);
+				        //surveySuggLabel.setText(sugg.getSuggestion());
+						surveySuggLabel.setText(suggestion);
 				        surveySuggIDHidden.setValue(sugg.getSuggestionID());	
 					}
 					
